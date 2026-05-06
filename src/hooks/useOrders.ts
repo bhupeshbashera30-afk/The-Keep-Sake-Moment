@@ -1,27 +1,13 @@
-import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+import { useCallback, useEffect, useState } from 'react'
+import { supabase, type Order } from '../lib/supabase'
 
-export type Order = {
-  id: string
-  customer_name: string
-  email: string
-  phone: string
-  address: string
-  products: Array<{ id: string; name: string; price: number; qty: number; image_url?: string }>
-  total: number
-  payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
-  order_status: 'processing' | 'confirmed' | 'preparing' | 'dispatched' | 'delivered' | 'cancelled'
-  razorpay_payment_id: string | null
-  notes: string | null
-  created_at: string
-}
+export type { Order }
 
-export function useOrders(searchQuery?: string) {
+export function useOrders(search?: string) {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  const fetchOrders = useCallback(async () => {
+  const refetch = useCallback(async () => {
     if (!supabase) { setLoading(false); return }
     setLoading(true)
     let query = supabase
@@ -29,42 +15,27 @@ export function useOrders(searchQuery?: string) {
       .select('*')
       .order('created_at', { ascending: false })
 
-    if (searchQuery && searchQuery.trim()) {
+    if (search && search.trim()) {
       query = query.or(
-        `customer_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`
+        `customer_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
       )
     }
 
-    const { data, error } = await query
-    if (error) setError(error.message)
-    else setOrders((data ?? []) as Order[])
+    const { data } = await query
+    setOrders((data as Order[]) ?? [])
     setLoading(false)
-  }, [searchQuery])
+  }, [search])
 
-  useEffect(() => { fetchOrders() }, [fetchOrders])
+  useEffect(() => { refetch() }, [refetch])
 
   const updateOrderStatus = async (
-    orderId: string,
-    updates: Partial<Pick<Order, 'order_status' | 'payment_status' | 'notes'>>
+    id: string,
+    updates: Partial<Pick<Order, 'order_status' | 'payment_status'>>
   ) => {
-    if (!supabase) return { error: 'Supabase not configured' }
-    const { error } = await supabase
-      .from('orders')
-      .update(updates)
-      .eq('id', orderId)
-    if (!error) await fetchOrders()
-    return { error: error?.message ?? null }
+    if (!supabase) return
+    await supabase.from('orders').update(updates).eq('id', id)
+    await refetch()
   }
 
-  const getOrderStats = () => {
-    const total = orders.length
-    const paid = orders.filter(o => o.payment_status === 'paid').length
-    const pending = orders.filter(o => o.payment_status === 'pending').length
-    const revenue = orders
-      .filter(o => o.payment_status === 'paid')
-      .reduce((sum, o) => sum + Number(o.total), 0)
-    return { total, paid, pending, revenue }
-  }
-
-  return { orders, loading, error, refetch: fetchOrders, updateOrderStatus, getOrderStats }
+  return { orders, loading, refetch, updateOrderStatus }
 }

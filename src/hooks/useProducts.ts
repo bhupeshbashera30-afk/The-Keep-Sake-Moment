@@ -1,49 +1,48 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useCallback, useEffect, useState } from 'react'
+import { supabase, type Product } from '../lib/supabase'
 
-export type Product = {
-  id: string
-  name: string
-  description: string
-  price: number
-  image_url: string
-  category: string
-  stock: number
-  created_at: string
-}
+export type { Product }
 
 export function useProducts(category?: string) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetch = useCallback(async () => {
     if (!supabase) { setLoading(false); return }
     setLoading(true)
-    let query = supabase.from('products').select('*').order('created_at', { ascending: false })
-    if (category && category !== 'all') query = query.eq('category', category)
-    query.then(({ data, error }) => {
-      if (error) setError(error.message)
-      else setProducts(data ?? [])
-      setLoading(false)
-    })
+    let query = supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+    if (category) query = query.eq('category', category)
+    const { data } = await query
+    setProducts((data as Product[]) ?? [])
+    setLoading(false)
   }, [category])
 
-  return { products, loading, error, refetch: () => {} }
+  useEffect(() => { fetch() }, [fetch])
+
+  return { products, loading, refetch: fetch }
 }
 
+// Admin hook — fetches ALL products regardless of is_active
 export function useAllProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetch = async () => {
+  const refetch = useCallback(async () => {
     if (!supabase) { setLoading(false); return }
-    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
-    setProducts(data ?? [])
+    setLoading(true)
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+    setProducts((data as Product[]) ?? [])
     setLoading(false)
-  }
+  }, [])
 
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { refetch() }, [refetch])
 
-  return { products, loading, refetch: fetch }
+  return { products, loading, refetch }
 }

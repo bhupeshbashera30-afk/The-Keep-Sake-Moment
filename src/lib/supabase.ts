@@ -5,6 +5,7 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 export const supabase = url && anonKey ? createClient(url, anonKey) : null
 
+// ── Service types ──────────────────────────────────────────
 export type ServiceRecord = {
   id: number
   name: string
@@ -26,5 +27,39 @@ export type ServiceRecord = {
   payment_type: 'full' | 'advance' | 'inquiry' | null
   advance_amount: number | null
   image_url: string | null
+  created_at: string
+}
+
+// ── Commerce types ─────────────────────────────────────────
+export type Product = {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  image_url: string | null
+  category: string
+  stock: number
+  is_active: boolean
+  created_at: string
+}
+
+export type Order = {
+  id: string
+  customer_name: string
+  email: string
+  phone: string
+  address: string | null
+  products: Array<{ id: string; name: string; price: number; qty: number; image_url?: string }>
+  total: number
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
+  order_status: 'processing' | 'confirmed' | 'preparing' | 'dispatched' | 'delivered' | 'cancelled'
+  razorpay_payment_id: string | null
+  created_at: string
+}
+
+export type Profile = {
+  id: string
+  email: string | null
+  role: 'admin' | 'user'
   created_at: string
 }
