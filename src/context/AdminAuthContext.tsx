@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
@@ -10,7 +10,7 @@ type AdminAuthContextType = {
   signOut: () => Promise<void>
 }
 
-const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
+export const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -23,7 +23,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       .from('profiles')
       .select('role')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
     return data?.role === 'admin'
   }
 
@@ -42,17 +42,45 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn = async (email: string, password: string) => {
-    if (!supabase) return { error: 'Supabase not configured' }
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: error.message }
-    return { error: null }
+  const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
+    if (!supabase) return { error: 'Supabase client not initialized' }
+
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) return { error: authError.message }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .maybeSingle()
+
+      if (profileError) return { error: 'Could not verify role: ' + profileError.message }
+      if (!profile) return { error: 'No profile found. Contact support.' }
+      if (profile.role !== 'admin') {
+        await supabase.auth.signOut()
+        return { error: 'Access denied. Not an admin account.' }
+      }
+
+      setIsAdmin(true)
+      setSession(authData.session)
+      return { error: null }
+
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      return { error: message }
+    }
   }
 
   const signOut = async () => {
     if (!supabase) return
     await supabase.auth.signOut()
     setIsAdmin(false)
+    setSession(null)
   }
 
   return (
@@ -60,10 +88,4 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AdminAuthContext.Provider>
   )
-}
-
-export function useAdminAuth() {
-  const ctx = useContext(AdminAuthContext)
-  if (!ctx) throw new Error('useAdminAuth must be inside AdminAuthProvider')
-  return ctx
 }
