@@ -13,13 +13,27 @@ export function AdminLoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const { error } = await signIn(form.email, form.password)
-    if (error) {
-      setError(error)
+
+    console.log('[AdminLogin] Attempting sign in with:', form.email)
+
+    try {
+      const { error } = await signIn(form.email, form.password)
+      console.log('[AdminLogin] signIn result error:', error)
+
+      if (error) {
+        setError(error)
+        setLoading(false)
+        return
+      }
+
+      console.log('[AdminLogin] Success — navigating to dashboard')
       setLoading(false)
-      return
+      navigate('/admin/dashboard')
+    } catch (err: any) {
+      console.error('[AdminLogin] Unexpected error:', err)
+      setError(err.message ?? 'Unexpected error occurred')
+      setLoading(false)
     }
-    navigate('/admin/dashboard')
   }
 
   return (
@@ -35,9 +49,12 @@ export function AdminLoginPage() {
           )}
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm text-burgundy-600">Email</label>
+              <label htmlFor="admin-email" className="mb-1.5 block text-sm text-burgundy-600">Email</label>
               <input
+                id="admin-email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 value={form.email}
                 onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                 required
@@ -45,9 +62,12 @@ export function AdminLoginPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm text-burgundy-600">Password</label>
+              <label htmlFor="admin-password" className="mb-1.5 block text-sm text-burgundy-600">Password</label>
               <input
+                id="admin-password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
                 value={form.password}
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                 required

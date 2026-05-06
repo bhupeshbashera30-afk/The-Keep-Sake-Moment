@@ -10,7 +10,7 @@ type AdminAuthContextType = {
   signOut: () => Promise<void>
 }
 
-const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
+export const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -19,11 +19,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAdmin(userId: string) {
     if (!supabase) return false
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .maybeSingle()
+    console.log('[AdminAuth] checkAdmin result:', data, error)
     return data?.role === 'admin'
   }
 
@@ -43,22 +44,25 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
-    // ← null guard fixes all 3 TS errors
     if (!supabase) return { error: 'Supabase client not initialized' }
 
     try {
+      console.log('[AdminAuth] Step 1: signing in...')
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
+      console.log('[AdminAuth] Step 1 result:', authData, authError)
 
       if (authError) return { error: authError.message }
 
+      console.log('[AdminAuth] Step 2: checking profile for', authData.user.id)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', authData.user.id)
         .maybeSingle()
+      console.log('[AdminAuth] Step 2 result:', profile, profileError)
 
       if (profileError) return { error: 'Could not verify role: ' + profileError.message }
       if (!profile) return { error: 'No profile found. Contact support.' }
@@ -67,11 +71,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         return { error: 'Access denied. Not an admin account.' }
       }
 
+      console.log('[AdminAuth] Step 3: admin verified, setting session')
       setIsAdmin(true)
       setSession(authData.session)
       return { error: null }
 
     } catch (err: any) {
+      console.error('[AdminAuth] Caught error:', err)
       return { error: err.message ?? 'Unknown error' }
     }
   }
