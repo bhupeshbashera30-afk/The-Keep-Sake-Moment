@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { ShoppingCart } from 'lucide-react'
 import { ScrollReveal } from '../components/ScrollReveal'
-import { SectionIntro } from '../components/SectionIntro'
 import { useProducts, type Product } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
 
@@ -43,18 +42,18 @@ export function ShopPage() {
         </div>
       </section>
 
-      {/* Category Filter */}
+      {/* Category Filter — understated text tabs, no pills */}
       <section className="border-b border-burgundy-100 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-5 md:px-8">
-          <div className="flex flex-wrap gap-2">
+        <div className="mx-auto max-w-7xl px-4 md:px-8">
+          <div className="flex gap-0 overflow-x-auto">
             {CATEGORIES.map(cat => (
               <button
                 key={cat.key}
                 onClick={() => setActiveCategory(cat.key)}
-                className={`rounded-full px-5 py-2 text-sm font-medium transition ${
+                className={`whitespace-nowrap border-b-2 px-5 py-4 text-sm font-medium transition-colors ${
                   activeCategory === cat.key
-                    ? 'bg-burgundy-800 text-white shadow-md'
-                    : 'border border-burgundy-200 text-burgundy-600 hover:bg-burgundy-50'
+                    ? 'border-burgundy-800 text-burgundy-950'
+                    : 'border-transparent text-burgundy-400 hover:text-burgundy-700'
                 }`}
               >
                 {cat.label}
