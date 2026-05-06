@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
@@ -10,7 +10,7 @@ type AdminAuthContextType = {
   signOut: () => Promise<void>
 }
 
-export const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
+const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -43,6 +43,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
+    // ← null guard fixes all 3 TS errors
     if (!supabase) return { error: 'Supabase client not initialized' }
 
     try {
@@ -70,9 +71,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setSession(authData.session)
       return { error: null }
 
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      return { error: message }
+    } catch (err: any) {
+      return { error: err.message ?? 'Unknown error' }
     }
   }
 
@@ -88,4 +88,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AdminAuthContext.Provider>
   )
+}
+
+export function useAdminAuth() {
+  const ctx = useContext(AdminAuthContext)
+  if (!ctx) throw new Error('useAdminAuth must be inside AdminAuthProvider')
+  return ctx
 }
