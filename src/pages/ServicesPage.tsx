@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { InquiryForm } from '../components/InquiryForm'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase, type ServiceRecord } from '../lib/supabase'
 import { services as staticServices } from '../lib/data'
@@ -126,13 +125,13 @@ export function ServicesPage() {
             ))}
           </div>
         ) : items.length > 0 ? (
-          <ScrollReveal stagger>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
-                <ServiceCard key={item.id} item={item} />
-              ))}
-            </div>
-          </ScrollReveal>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item, idx) => (
+              <ScrollReveal key={item.id} direction="up" delay={(idx % 3) * 100} className="h-full">
+                <ServiceCard item={item} categoryName={eyebrow} hidePricing={slug === 'event-and-decor' || slug === 'photobooth-rental'} />
+              </ScrollReveal>
+            ))}
+          </div>
         ) : staticFallback ? (
           <ScrollReveal direction="up">
             <div className="grid gap-6 md:grid-cols-2">
@@ -154,72 +153,60 @@ export function ServicesPage() {
         )}
       </section>
 
-      {/* ── Enquiry ───────────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 md:px-8">
-        <ScrollReveal direction="up">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-burgundy-400">Enquiry</p>
-              <h2 className="mt-3 font-serif text-4xl text-burgundy-950">Share the basics, then let the team shape the rest.</h2>
-              <p className="mt-4 text-sm leading-7 text-burgundy-700">
-                This page supports the consultation-first model — especially for custom services and package-based planning.
-              </p>
-            </div>
-            <InquiryForm compact />
-          </div>
-        </ScrollReveal>
-      </section>
+
     </div>
   )
 }
 
-function ServiceCard({ item }: { item: ServiceRecord }) {
+function ServiceCard({ item, categoryName, hidePricing = false }: { item: ServiceRecord, categoryName: string, hidePricing?: boolean }) {
   const price = item.price ?? item.starting_price
   const currency = item.currency ?? 'INR'
   const isFixed = item.pricing_type === 'fixed' && item.accept_payment && price
 
   return (
-    <article className="card-lift flex flex-col rounded-[2rem] border border-burgundy-100 bg-white p-8 shadow-soft">
-      {item.image_url || item.hero_image ? (
-        <img
-          src={item.image_url ?? item.hero_image ?? ''}
-          alt={item.name}
-          className="mb-6 h-48 w-full rounded-2xl object-cover"
-          loading="lazy"
-        />
-      ) : (
-        <div className="mb-6 flex h-48 items-center justify-center rounded-2xl bg-gradient-to-br from-burgundy-50 to-burgundy-100/40">
-          <span className="font-serif text-4xl text-burgundy-200">KM</span>
-        </div>
-      )}
-
-      <p className="text-xs uppercase tracking-[0.35em] text-burgundy-500">{item.price_model ?? ''}</p>
-      <h3 className="mt-2 font-serif text-2xl text-burgundy-950">{item.name}</h3>
-      <p className="mt-3 flex-1 text-sm leading-7 text-burgundy-700">{item.short_description}</p>
-
-      {price && (
-        <p className="mt-4 font-serif text-2xl text-burgundy-900">
-          {currency === 'INR' ? '₹' : currency}
-          {Number(price).toLocaleString('en-IN')}
-        </p>
-      )}
-
-      <div className="mt-6">
-        {isFixed ? (
-          <Link
-            to="/contact"
-            className="btn-magnetic block w-full rounded-full bg-burgundy-800 px-5 py-3 text-center text-sm text-white transition hover:bg-burgundy-700"
-          >
-            Book now
-          </Link>
+    <article className="card-lift group flex h-full flex-col overflow-hidden rounded-[2rem] border border-burgundy-100 bg-white p-2 shadow-soft">
+      <div className="aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] bg-burgundy-50">
+        {item.image_url || item.hero_image ? (
+          <img
+            src={item.image_url ?? item.hero_image ?? ''}
+            alt={item.name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
         ) : (
-          <Link
-            to="/contact"
-            className="btn-magnetic block w-full rounded-full border border-burgundy-300 px-5 py-3 text-center text-sm text-burgundy-800 transition hover:border-burgundy-500 hover:bg-burgundy-50"
-          >
-            Enquire
-          </Link>
+          <div className="flex h-full items-center justify-center font-serif text-3xl text-burgundy-200">KM</div>
         )}
+      </div>
+      
+      <div className="flex flex-1 flex-col px-6 py-6 pb-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-burgundy-500">{item.price_model ?? ''}</p>
+        <h3 className="mt-2 font-serif text-2xl text-burgundy-950">{item.name}</h3>
+        <p className="mt-3 flex-1 text-sm leading-7 text-burgundy-700">{item.short_description}</p>
+
+        {!hidePricing && price && (
+          <p className="mt-4 font-serif text-2xl text-burgundy-900">
+            {currency === 'INR' ? '₹' : currency}
+            {Number(price).toLocaleString('en-IN')}
+          </p>
+        )}
+
+        <div className="mt-6">
+          {isFixed ? (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: categoryName, notes: `I would like to book: ${item.name}` } }))}
+              className="btn-magnetic block w-full rounded-full bg-burgundy-800 px-5 py-3 text-center text-sm text-white transition hover:bg-burgundy-700"
+            >
+              Book now
+            </button>
+          ) : (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: categoryName, notes: `I am interested in: ${item.name}` } }))}
+              className="btn-magnetic block w-full rounded-full border border-burgundy-300 px-5 py-3 text-center text-sm text-burgundy-800 transition hover:border-burgundy-500 hover:bg-burgundy-50"
+            >
+              Enquire
+            </button>
+          )}
+        </div>
       </div>
     </article>
   )

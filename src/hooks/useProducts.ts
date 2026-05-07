@@ -8,20 +8,39 @@ export function useProducts(category?: string) {
   const [loading, setLoading] = useState(true)
 
   const fetch = useCallback(async () => {
-    if (!supabase) { setLoading(false); return }
+    console.log('[useProducts] fetch called with category:', category)
+    if (!supabase) { 
+      console.log('[useProducts] supabase client is null!')
+      setLoading(false); 
+      return 
+    }
     setLoading(true)
-    let query = supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-    if (category) query = query.eq('category', category)
-    const { data } = await query
-    setProducts((data as Product[]) ?? [])
-    setLoading(false)
+    console.log('[useProducts] calling supabase.from(products)...')
+    try {
+      let query = supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+      if (category) query = query.eq('category', category)
+      
+      console.log('[useProducts] awaiting query...')
+      const response = await query
+      console.log('[useProducts] query response:', response)
+      
+      setProducts((response.data as Product[]) ?? [])
+    } catch (err) {
+      console.error('[useProducts] CAUGHT EXCEPTION:', err)
+    } finally {
+      console.log('[useProducts] setting loading false')
+      setLoading(false)
+    }
   }, [category])
 
-  useEffect(() => { fetch() }, [fetch])
+  useEffect(() => { 
+    console.log('[useProducts] useEffect mounting')
+    fetch() 
+  }, [fetch])
 
   return { products, loading, refetch: fetch }
 }

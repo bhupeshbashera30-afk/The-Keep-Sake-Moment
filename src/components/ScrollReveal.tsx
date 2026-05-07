@@ -1,5 +1,5 @@
 import { useEffect, useRef, cloneElement, Children, isValidElement } from 'react'
-import type { ReactNode, ReactElement, HTMLAttributes } from 'react'
+import type { ReactNode, ReactElement, HTMLAttributes, ElementType } from 'react'
 
 type Direction = 'up' | 'left' | 'right' | 'scale' | 'blur'
 
@@ -9,7 +9,7 @@ interface Props {
   delay?: number
   stagger?: boolean
   className?: string
-  as?: keyof JSX.IntrinsicElements
+  as?: ElementType
 }
 
 export function ScrollReveal({

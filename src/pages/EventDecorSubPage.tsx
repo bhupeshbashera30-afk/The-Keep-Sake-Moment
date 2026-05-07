@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { InquiryForm } from '../components/InquiryForm'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase, type ServiceRecord } from '../lib/supabase'
 
@@ -167,12 +166,12 @@ export function EventDecorSubPage() {
                   )}
                   <h3 className="font-serif text-2xl text-burgundy-950">{item.name}</h3>
                   <p className="mt-3 flex-1 text-sm leading-7 text-burgundy-700">{item.short_description}</p>
-                  <Link
-                    to="/contact"
-                    className="btn-magnetic mt-6 block rounded-full border border-burgundy-300 px-5 py-3 text-center text-sm text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white"
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I am interested in ${item.name} for my ${meta.title} event.` } }))}
+                    className="btn-magnetic mt-6 block w-full rounded-full border border-burgundy-300 px-5 py-3 text-center text-sm text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white"
                   >
                     Enquire
-                  </Link>
+                  </button>
                 </article>
               ))}
             </div>
@@ -184,32 +183,18 @@ export function EventDecorSubPage() {
               <p className="mt-4 text-sm leading-7 text-burgundy-700">
                 {meta.title} packages are customised to each event. Share your vision and the team will shape the experience.
               </p>
-              <Link
-                to="/contact"
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I would like to start an enquiry for a ${meta.title} event.` } }))}
                 className="btn-magnetic mt-8 inline-flex rounded-full bg-burgundy-800 px-6 py-3 text-sm text-white transition hover:bg-burgundy-700"
               >
                 Start an enquiry
-              </Link>
+              </button>
             </div>
           </ScrollReveal>
         )}
       </section>
 
-      {/* ── Enquiry ───────────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 md:px-8">
-        <ScrollReveal direction="up">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-burgundy-400">Enquiry</p>
-              <h2 className="mt-3 font-serif text-4xl text-burgundy-950">Tell us about the occasion.</h2>
-              <p className="mt-4 text-sm leading-7 text-burgundy-700">
-                Share the basics — the team will follow up to refine the styling, scope, and execution details personally.
-              </p>
-            </div>
-            <InquiryForm compact />
-          </div>
-        </ScrollReveal>
-      </section>
+
     </div>
   )
 }

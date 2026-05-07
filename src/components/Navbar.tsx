@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { Menu, X, ShoppingBag } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { CartDrawer } from './CartDrawer'
+import { InquiryModal } from './InquiryModal'
 
 const serviceLinks = [
   { to: '/services/photobooth-rental', label: 'Photobooth Rental' },
-  { to: '/services/hampers-and-flower', label: 'Hampers & Flower' },
   { to: '/services/dinner-night', label: 'Dinner Night' },
   { to: '/services/event-and-decor', label: 'Event & Decor' },
 ]
@@ -14,7 +14,24 @@ const serviceLinks = [
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
+  const [enquiryOpen, setEnquiryOpen] = useState(false)
+  const [enquiryProps, setEnquiryProps] = useState<{ service?: string; notes?: string; type?: 'contact' | 'booking'; timestamp?: number }>({})
   const { itemCount } = useCart()
+
+  useEffect(() => {
+    const handleOpen = (e: any) => {
+      const detail = e.detail || {}
+      setEnquiryProps({
+        service: detail.service,
+        notes: detail.notes,
+        type: detail.service ? 'booking' : 'contact',
+        timestamp: Date.now()
+      })
+      setEnquiryOpen(true)
+    }
+    window.addEventListener('open-enquiry', handleOpen)
+    return () => window.removeEventListener('open-enquiry', handleOpen)
+  }, [])
 
   return (
     <>
@@ -113,12 +130,12 @@ export function Navbar() {
               )}
             </button>
 
-            <Link
-              to="/contact"
+            <button
+              onClick={() => setEnquiryOpen(true)}
               className="rounded-full bg-burgundy-800 px-5 py-2.5 text-sm text-white transition hover:bg-burgundy-700"
             >
               Enquire now
-            </Link>
+            </button>
           </div>
 
           {/* Mobile: cart + hamburger */}
@@ -161,13 +178,12 @@ export function Navbar() {
               <MobileLink to="/shop" onClick={() => setMobileOpen(false)}>Shop</MobileLink>
               <MobileLink to="/about" onClick={() => setMobileOpen(false)}>About</MobileLink>
               <MobileLink to="/contact" onClick={() => setMobileOpen(false)}>Contact</MobileLink>
-              <Link
-                to="/contact"
-                onClick={() => setMobileOpen(false)}
+              <button
+                onClick={() => { setMobileOpen(false); setEnquiryOpen(true) }}
                 className="mt-4 rounded-full bg-burgundy-800 px-5 py-3 text-center text-sm text-white transition hover:bg-burgundy-700"
               >
                 Enquire now
-              </Link>
+              </button>
             </div>
           </div>
         )}
@@ -175,6 +191,16 @@ export function Navbar() {
 
       {/* Cart Drawer — outside header, renders as overlay */}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+
+      {/* Inquiry Modal */}
+      <InquiryModal 
+        open={enquiryOpen} 
+        onClose={() => setEnquiryOpen(false)} 
+        defaultService={enquiryProps.service} 
+        defaultNotes={enquiryProps.notes} 
+        submissionType={enquiryProps.type || 'contact'}
+        timestamp={enquiryProps.timestamp}
+      />
     </>
   )
 }

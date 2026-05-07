@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { InquiryForm } from '../components/InquiryForm'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { packageOptions } from '../lib/data'
 
@@ -89,15 +88,14 @@ export function PackagesPage() {
           <h2 className="mt-2 font-serif text-4xl text-burgundy-950">Three distinct tiers. One seamless experience.</h2>
         </ScrollReveal>
 
-        <ScrollReveal stagger>
-          <div className="grid gap-6 md:grid-cols-3">
-            {packageOptions.map((option) => {
-              const meta = packageMeta[option.name]
-              const isFeatured = meta?.featured
-              return (
+        <div className="grid gap-6 md:grid-cols-3">
+          {packageOptions.map((option, idx) => {
+            const meta = packageMeta[option.name]
+            const isFeatured = meta?.featured
+            return (
+              <ScrollReveal key={option.name} direction="up" delay={idx * 100} className="h-full">
                 <article
-                  key={option.name}
-                  className={`card-lift relative flex flex-col overflow-hidden rounded-[2rem] border p-8 shadow-soft ${
+                  className={`card-lift relative flex h-full flex-col overflow-hidden rounded-[2rem] border p-8 shadow-soft ${
                     isFeatured
                       ? 'bg-[#2b1118] border-burgundy-900 text-[#f7f1ee] md:-translate-y-3 md:scale-[1.03] shadow-[0_32px_80px_rgba(43,17,24,0.45)]'
                       : 'bg-white border-burgundy-100'
@@ -174,21 +172,26 @@ export function PackagesPage() {
                   )}
 
                   {/* CTA */}
-                  <Link
-                    to="/contact"
-                    className={`btn-magnetic mt-6 block rounded-full px-6 py-3.5 text-center text-sm font-medium transition ${
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { 
+                      detail: { 
+                        service: 'Packages', 
+                        notes: `I am interested in the ${option.name} package.` 
+                      } 
+                    }))}
+                    className={`btn-magnetic mt-6 block w-full rounded-full px-6 py-3.5 text-center text-sm font-medium transition ${
                       isFeatured
                         ? 'bg-[#b08c5a] text-[#2b1118] hover:bg-[#c9a070]'
                         : 'border border-burgundy-300 text-burgundy-800 hover:bg-burgundy-800 hover:text-white hover:border-burgundy-800'
                     }`}
                   >
                     {meta?.ctaLabel ?? 'Enquire'}
-                  </Link>
+                  </button>
                 </article>
-              )
-            })}
-          </div>
-        </ScrollReveal>
+              </ScrollReveal>
+            )
+          })}
+        </div>
       </section>
 
       {/* ── Discovery / editorial strip ───────────────────────── */}
@@ -220,44 +223,21 @@ export function PackagesPage() {
                 </div>
               </div>
               <div className="flex items-center">
-                <Link
-                  to="/contact"
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', {
+                    detail: { service: 'Packages' }
+                  }))}
                   className="btn-magnetic whitespace-nowrap rounded-full bg-[#b08c5a] px-8 py-4 text-sm font-medium text-[#2b1118] transition hover:bg-[#c9a070]"
                 >
                   Start your enquiry
-                </Link>
+                </button>
               </div>
             </div>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* ── Enquiry Form ──────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 py-20 md:px-8">
-        <ScrollReveal direction="up">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-burgundy-500">Package enquiry</p>
-              <h2 className="mt-3 font-serif text-4xl text-burgundy-950">Ready to begin?</h2>
-              <p className="mt-4 text-sm leading-7 text-burgundy-700">
-                You do not need to finalise every detail here. Share the basics — package preference, occasion, and timeline — and the team will shape the rest personally.
-              </p>
-              <div className="mt-8 rounded-2xl border border-burgundy-100 bg-burgundy-50/50 p-5">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-burgundy-500">What to include</p>
-                <ul className="mt-3 space-y-2 text-sm text-burgundy-700">
-                  {['Preferred package tier', 'Event date or rough timeline', 'Occasion type', 'Guest count if known'].map((item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <span className="h-1 w-1 rounded-full bg-burgundy-400" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <InquiryForm compact />
-          </div>
-        </ScrollReveal>
-      </section>
+
 
     </div>
   )

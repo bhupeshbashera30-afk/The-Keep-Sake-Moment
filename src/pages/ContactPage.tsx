@@ -70,7 +70,7 @@ export function ContactPage() {
             </div>
 
             {/* Right: form */}
-            <InquiryForm />
+            <InquiryForm submissionType="contact" />
           </div>
         </ScrollReveal>
       </section>

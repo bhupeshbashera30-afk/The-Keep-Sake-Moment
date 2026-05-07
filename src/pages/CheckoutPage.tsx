@@ -66,6 +66,7 @@ export function CheckoutPage() {
       description: 'Event gifts & add-ons',
       image: '/logo.png',
       handler: async (response: any) => {
+        if (!supabase) return
         await supabase.from('orders').update({
           razorpay_payment_id: response.razorpay_payment_id,
           payment_status: 'paid',

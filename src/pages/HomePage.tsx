@@ -17,15 +17,6 @@ const highlights = [
     statLabel: 'events',
   },
   {
-    icon: Gift,
-    title: 'Hampers & Flower',
-    body: 'Luxury gifting collections with flowers, curated pairings, and ready-price selections.',
-    link: '/services/hampers-and-flower',
-    tooltip: 'Same-day dispatch · Custom ribbons · Bespoke curation',
-    stat: '500+',
-    statLabel: 'hampers',
-  },
-  {
     icon: Moon,
     title: 'Dinner Night',
     body: 'Romantic and intimate dinner experiences styled around mood, detail, and atmosphere.',
@@ -84,19 +75,6 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
 }
 
 export function HomePage() {
-  const heroTextRef = useRef<HTMLHeadingElement>(null)
-
-  // Parallax on hero headline
-  useEffect(() => {
-    const handle = () => {
-      if (!heroTextRef.current) return
-      const y = window.scrollY * 0.18
-      heroTextRef.current.style.transform = `translateY(${y}px)`
-    }
-    window.addEventListener('scroll', handle, { passive: true })
-    return () => window.removeEventListener('scroll', handle)
-  }, [])
-
   return (
     <div>
       {/* ── Hero ───────────────────────────────────────────── */}
@@ -111,8 +89,7 @@ export function HomePage() {
               </ScrollReveal>
 
               <h1
-                ref={heroTextRef}
-                className="parallax-text mt-6 max-w-4xl font-serif text-6xl leading-[0.92] text-burgundy-950 md:text-8xl"
+                className="mt-6 max-w-4xl font-serif text-6xl leading-[0.92] text-burgundy-950 md:text-8xl"
                 style={{ opacity: 1 }}
               >
                 <span className="block overflow-hidden">
@@ -141,12 +118,12 @@ export function HomePage() {
 
               <ScrollReveal direction="up" delay={420}>
                 <div className="mt-10 flex flex-wrap gap-4">
-                  <Link
-                    to="/contact"
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry'))}
                     className="btn-magnetic rounded-full bg-burgundy-800 px-6 py-3 text-sm text-white hover:bg-burgundy-700"
                   >
                     Start your enquiry
-                  </Link>
+                  </button>
                   <Link
                     to="/packages"
                     className="btn-magnetic rounded-full border border-burgundy-300 px-6 py-3 text-sm text-burgundy-800 hover:border-burgundy-500"
@@ -209,19 +186,19 @@ export function HomePage() {
       {/* ── Stats ───────────────────────────────────────────── */}
       <section className="border-b border-burgundy-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <ScrollReveal stagger>
-            <div className="grid grid-cols-3 divide-x divide-burgundy-100">
-              {stats.map((s) => (
-                <div key={s.label} className="flex flex-col items-center py-10 px-4 text-center">
+          <div className="grid grid-cols-3 divide-x divide-burgundy-100">
+            {stats.map((s, idx) => (
+              <ScrollReveal key={s.label} direction="up" delay={idx * 100} className="h-full">
+                <div className="flex h-full flex-col items-center py-10 px-4 text-center">
                   <s.icon className="h-5 w-5 text-gold mb-4" />
                   <p className="font-serif text-4xl text-burgundy-950 md:text-5xl">
                     <CountUp target={s.value} suffix={s.suffix} />
                   </p>
                   <p className="mt-2 text-xs uppercase tracking-[0.25em] text-burgundy-500">{s.label}</p>
                 </div>
-              ))}
-            </div>
-          </ScrollReveal>
+              </ScrollReveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -235,28 +212,30 @@ export function HomePage() {
           />
         </ScrollReveal>
 
-        <ScrollReveal stagger className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {highlights.map((item) => (
-            <div key={item.title} className="tooltip-host">
-              <Link
-                to={item.link}
-                className="card-lift group flex flex-col rounded-[2rem] border border-burgundy-100 bg-white p-8 shadow-soft"
-              >
-                <item.icon className="h-7 w-7 text-burgundy-700 transition group-hover:scale-110 duration-300" />
-                <h3 className="mt-6 font-serif text-2xl text-burgundy-950">{item.title}</h3>
-                <p className="mt-4 flex-1 text-sm leading-7 text-burgundy-700">{item.body}</p>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="font-serif text-2xl text-gold count-stat">{item.stat}</span>
-                  <span className="text-xs text-burgundy-400">{item.statLabel}</span>
-                </div>
-                <span className="mt-4 inline-flex items-center gap-2 text-sm text-burgundy-600 transition group-hover:text-burgundy-900 underline-draw">
-                  Discover →
-                </span>
-              </Link>
-              <div className="tooltip-bubble">{item.tooltip}</div>
-            </div>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {highlights.map((item, idx) => (
+            <ScrollReveal key={item.title} direction="up" delay={(idx % 4) * 100} className="h-full">
+              <div className="tooltip-host h-full">
+                <Link
+                  to={item.link}
+                  className="card-lift group flex h-full flex-col rounded-[2rem] border border-burgundy-100 bg-white p-8 shadow-soft"
+                >
+                  <item.icon className="h-7 w-7 text-burgundy-700 transition group-hover:scale-110 duration-300" />
+                  <h3 className="mt-6 font-serif text-2xl text-burgundy-950">{item.title}</h3>
+                  <p className="mt-4 flex-1 text-sm leading-7 text-burgundy-700">{item.body}</p>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    <span className="font-serif text-2xl text-gold count-stat">{item.stat}</span>
+                    <span className="text-xs text-burgundy-400">{item.statLabel}</span>
+                  </div>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm text-burgundy-600 transition group-hover:text-burgundy-900 underline-draw">
+                    Discover →
+                  </span>
+                </Link>
+                <div className="tooltip-bubble">{item.tooltip}</div>
+              </div>
+            </ScrollReveal>
           ))}
-        </ScrollReveal>
+        </div>
       </section>
 
       {/* ── Packages ────────────────────────────────────────── */}
@@ -279,24 +258,25 @@ export function HomePage() {
               </div>
             </ScrollReveal>
 
-            <ScrollReveal stagger className="grid gap-5">
-              {packageOptions.map((option) => (
-                <article
-                  key={option.name}
-                  className="card-lift rounded-[2rem] border border-burgundy-100 bg-parchment p-6 cursor-default"
-                >
-                  <h3 className="font-serif text-2xl text-burgundy-900">{option.name}</h3>
-                  <p className="mt-3 text-sm leading-7 text-burgundy-700">{option.description}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {option.includes.map((item) => (
-                      <span key={item} className="rounded-full border border-burgundy-200 bg-white px-3 py-1 text-xs text-burgundy-700">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </article>
+            <div className="grid gap-5">
+              {packageOptions.map((option, idx) => (
+                <ScrollReveal key={option.name} direction="up" delay={idx * 100}>
+                  <article
+                    className="card-lift rounded-[2rem] border border-burgundy-100 bg-parchment p-6 cursor-default"
+                  >
+                    <h3 className="font-serif text-2xl text-burgundy-900">{option.name}</h3>
+                    <p className="mt-3 text-sm leading-7 text-burgundy-700">{option.description}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {option.includes.map((item) => (
+                        <span key={item} className="rounded-full border border-burgundy-200 bg-white px-3 py-1 text-xs text-burgundy-700">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                </ScrollReveal>
               ))}
-            </ScrollReveal>
+            </div>
           </div>
         </div>
       </section>

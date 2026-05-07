@@ -30,18 +30,32 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return }
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      if (session) setIsAdmin(await checkAdmin(session.user.id))
-      setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (session) setIsAdmin(await checkAdmin(session.user.id))
-      else setIsAdmin(false)
     })
+    
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      checkAdmin(session.user.id).then(admin => {
+        setIsAdmin(admin)
+        setLoading(false)
+      }).catch(() => {
+        setIsAdmin(false)
+        setLoading(false)
+      })
+    } else {
+      setIsAdmin(false)
+      setLoading(false)
+    }
+  }, [session?.user?.id])
 
   const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
     if (!supabase) return { error: 'Supabase client not initialized' }

@@ -1,9 +1,11 @@
-import { useState } from 'react'
-import { Plus, Pencil, Trash2, X, Check, Package } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Plus, Pencil, Trash2, X, Check, Package, Upload, ImageIcon } from 'lucide-react'
 import { useAllProducts, type Product } from '../../hooks/useProducts'
 import { supabase } from '../../lib/supabase'
 
 const CATEGORIES = ['hampers', 'flowers', 'gift_boxes', 'celebration', 'event_addons']
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 
 type FormState = {
   name: string
@@ -35,12 +37,20 @@ export function ProductsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filterCat, setFilterCat] = useState('all')
 
+  // Image upload state
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const filtered = filterCat === 'all' ? products : products.filter(p => p.category === filterCat)
 
   function openAdd() {
     setForm(EMPTY_FORM)
     setEditingId(null)
     setError(null)
+    setImageFile(null)
+    setImagePreview(null)
     setShowModal(true)
   }
 
@@ -56,6 +66,8 @@ export function ProductsPage() {
     })
     setEditingId(p.id)
     setError(null)
+    setImageFile(null)
+    setImagePreview(p.image_url || null)
     setShowModal(true)
   }
 
@@ -67,31 +79,102 @@ export function ProductsPage() {
     }))
   }
 
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file (JPEG, PNG, WebP, etc.)')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be smaller than 5 MB')
+      return
+    }
+
+    setImageFile(file)
+    setError(null)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  function removeImage() {
+    setImageFile(null)
+    setImagePreview(null)
+    setForm(prev => ({ ...prev, image_url: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  async function uploadImage(file: File): Promise<string | null> {
+    if (!supabase) return null
+    setUploading(true)
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`
+    const filePath = `products/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    setUploading(false)
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError)
+      throw new Error(`Image upload failed: ${uploadError.message}`)
+    }
+
+    // Return the public URL
+    return `${SUPABASE_URL}/storage/v1/object/public/product-images/${filePath}`
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!supabase) return
     setSaving(true)
     setError(null)
 
-    const payload = {
-      name: form.name.trim(),
-      description: form.description.trim(),
-      price: parseFloat(form.price) || 0,
-      image_url: form.image_url.trim() || null,
-      category: form.category,
-      stock: parseInt(form.stock) || 0,
-      is_active: form.is_active,
-    }
+    try {
+      let finalImageUrl = form.image_url.trim() || null
 
-    const { error: saveError } = editingId
-      ? await supabase.from('products').update(payload).eq('id', editingId)
-      : await supabase.from('products').insert(payload)
+      // Upload new image if one was selected
+      if (imageFile) {
+        finalImageUrl = await uploadImage(imageFile)
+      }
 
-    if (saveError) {
-      setError(saveError.message)
-    } else {
-      setShowModal(false)
-      await refetch()
+      const payload = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        price: parseFloat(form.price) || 0,
+        image_url: finalImageUrl,
+        category: form.category,
+        stock: parseInt(form.stock) || 0,
+        is_active: form.is_active,
+      }
+
+      const { error: saveError } = editingId
+        ? await supabase.from('products').update(payload).eq('id', editingId)
+        : await supabase.from('products').insert(payload)
+
+      if (saveError) {
+        setError(saveError.message)
+      } else {
+        setShowModal(false)
+        setImageFile(null)
+        setImagePreview(null)
+        await refetch()
+      }
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong')
     }
     setSaving(false)
   }
@@ -235,7 +318,7 @@ export function ProductsPage() {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
             <button
               onClick={() => setShowModal(false)}
               className="absolute right-4 top-4 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
@@ -319,22 +402,63 @@ export function ProductsPage() {
                 </select>
               </div>
 
+              {/* Image Upload */}
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Image URL</label>
+                <label className="mb-1 block text-xs font-medium text-gray-600">Product Image</label>
+
+                {imagePreview ? (
+                  <div className="relative rounded-xl overflow-hidden border border-gray-200">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="h-40 w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition flex items-center justify-center opacity-0 hover:opacity-100">
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="rounded-full bg-white/90 p-2 text-red-600 shadow-lg transition hover:bg-white"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="absolute bottom-2 left-2 rounded-lg bg-black/60 px-2 py-1 text-[10px] text-white">
+                      {imageFile ? imageFile.name : 'Current image'}
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 px-4 py-8 text-gray-400 transition hover:border-burgundy-300 hover:bg-burgundy-50/30 hover:text-burgundy-600"
+                  >
+                    <div className="rounded-full bg-white p-3 shadow-sm">
+                      <Upload className="h-5 w-5" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Click to upload image</p>
+                      <p className="mt-0.5 text-xs">JPEG, PNG, or WebP · Max 5 MB</p>
+                    </div>
+                  </button>
+                )}
+
                 <input
-                  name="image_url"
-                  value={form.image_url}
-                  onChange={handleChange}
-                  placeholder="https://…"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-burgundy-300 focus:outline-none focus:ring-2 focus:ring-burgundy-100"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleFileSelect}
+                  className="hidden"
                 />
-                {form.image_url && (
-                  <img
-                    src={form.image_url}
-                    alt="Preview"
-                    className="mt-2 h-24 w-full rounded-xl object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                  />
+
+                {imagePreview && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="mt-2 flex items-center gap-1.5 text-xs text-burgundy-600 transition hover:text-burgundy-800"
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    Change image
+                  </button>
                 )}
               </div>
 
@@ -360,10 +484,10 @@ export function ProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploading}
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-burgundy-800 py-2.5 text-sm font-medium text-white transition hover:bg-burgundy-700 disabled:opacity-60"
                 >
-                  {saving ? 'Saving…' : (<><Check className="h-4 w-4" />{editingId ? 'Update' : 'Add Product'}</>)}
+                  {saving || uploading ? (uploading ? 'Uploading image…' : 'Saving…') : (<><Check className="h-4 w-4" />{editingId ? 'Update' : 'Add Product'}</>)}
                 </button>
               </div>
             </form>
