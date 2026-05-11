@@ -25,6 +25,11 @@ const categoryMeta: Record<string, { eyebrow: string; description: string }> = {
     description:
       'Celebration styling for every occasion — birthdays, anniversaries, proposals, corporate events, and special gatherings.',
   },
+  'ice-cream-rental': {
+    eyebrow: 'Ice Cream Rental',
+    description:
+      'Premium ice cream cart and sundae bar rentals for events, parties, and celebrations. A sweet, fun addition to make any occasion more memorable.',
+  },
 }
 
 const decorSubpages = [
@@ -58,6 +63,8 @@ export function ServicesPage() {
             if (slug === 'photobooth-rental') return s.category_id === 1
             if (slug === 'hampers-and-flower') return s.category_id === 2
             if (slug === 'dinner-night') return s.category_id === 3
+            if (slug === 'ice-cream-rental') return s.category_id === 5
+            if (slug === 'crochets') return s.category_id === 6
             return false
           })
           setItems(filtered)

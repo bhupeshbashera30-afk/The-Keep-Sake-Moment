@@ -17,7 +17,7 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   min-width: 320px;
-  background: #f7f1ee;
+  background: #faf6f4;
   color: #201615;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -37,7 +37,7 @@ button, input, textarea, select { font: inherit; }
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #2b1118;
+  background: #591C1C;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -50,19 +50,15 @@ button, input, textarea, select { font: inherit; }
   transform: scale(1.04);
 }
 .loader-wordmark {
-  font-family: var(--font-serif);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 300;
-  letter-spacing: 0.25em;
-  color: #f7f1ee;
   opacity: 0;
+  filter: brightness(0) invert(1);
   animation: blurIn 1s var(--transition-expo) 0.2s forwards;
 }
 .loader-bar-track {
   margin-top: 2.5rem;
   width: clamp(160px, 30vw, 280px);
   height: 1px;
-  background: rgba(247,241,238,0.15);
+  background: rgba(43,17,24,0.12);
   overflow: hidden;
   border-radius: 9999px;
 }
@@ -281,6 +277,17 @@ button, input, textarea, select { font: inherit; }
 /* ── Admin panel field helpers ──────────────────────────── */
 .field-input {
   @apply w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-burgundy-400 focus:outline-none focus:ring-2 focus:ring-burgundy-100;
+}
+
+.admin-dashboard-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-dashboard-grid {
+    grid-template-columns: minmax(0, 1.9fr) minmax(320px, 1fr);
+  }
 }
 
 /* ── Scrollbar ──────────────────────────────────────────── */

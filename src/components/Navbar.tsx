@@ -1,14 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Menu, X, ShoppingBag } from 'lucide-react'
+import { Menu, X, ShoppingBag, ChevronDown } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { CartDrawer } from './CartDrawer'
 import { InquiryModal } from './InquiryModal'
 
 const serviceLinks = [
   { to: '/services/photobooth-rental', label: 'Photobooth Rental' },
+  { to: '/services/hampers-and-flower', label: 'Hampers & Flower' },
   { to: '/services/dinner-night', label: 'Dinner Night' },
   { to: '/services/event-and-decor', label: 'Event & Decor' },
+  { to: '/services/ice-cream-rental', label: 'Ice Cream Rental' },
+]
+
+const shopLinks = [
+  { to: '/shop?category=hampers', label: 'Hampers' },
+  { to: '/shop?category=flowers', label: 'Flowers' },
+  { to: '/shop?category=gift_boxes', label: 'Gift Boxes' },
+  { to: '/shop?category=celebration', label: 'Celebration' },
+  { to: '/shop?category=event_addons', label: 'Event Add-ons' },
+  { to: '/shop?category=crochets', label: 'Crochets' },
 ]
 
 export function Navbar() {
@@ -16,7 +27,21 @@ export function Navbar() {
   const [cartOpen, setCartOpen] = useState(false)
   const [enquiryOpen, setEnquiryOpen] = useState(false)
   const [enquiryProps, setEnquiryProps] = useState<{ service?: string; notes?: string; type?: 'contact' | 'booking'; timestamp?: number }>({})
+  const [servicesOpen, setServicesOpen] = useState(false)
+  const servicesRef = useRef<HTMLDivElement>(null)
+  const [shopOpen, setShopOpen] = useState(false)
+  const shopRef = useRef<HTMLDivElement>(null)
   const { itemCount } = useCart()
+
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   useEffect(() => {
     const handleOpen = (e: any) => {
@@ -33,132 +58,190 @@ export function Navbar() {
     return () => window.removeEventListener('open-enquiry', handleOpen)
   }, [])
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (servicesRef.current && !servicesRef.current.contains(e.target as Node)) {
+        setServicesOpen(false)
+      }
+      if (shopRef.current && !shopRef.current.contains(e.target as Node)) {
+        setShopOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-burgundy-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
-          <Link to="/" className="font-serif text-2xl tracking-wide text-burgundy-900">
-            Keepsake Moments
-          </Link>
+      <header 
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          scrolled 
+            ? 'bg-white/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.05)] border-b border-white/50' 
+            : 'bg-transparent border-transparent'
+        }`}
+      >
+        <div className="mx-auto flex flex-col items-center px-4 py-4 md:px-8 relative">
+          {/* Top section: Mobile flex, Desktop center */}
+          <div className="flex w-full items-center justify-between md:justify-center relative">
+            
+            <Link to="/" className="flex-shrink-0 z-10">
+              <img src="/images/logo-transparent-new.png" alt="The Keepsake Moment" className="h-10 md:h-20 w-auto" />
+            </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden items-center gap-1 md:flex">
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm transition ${
-                  isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
-                }`
-              }
-            >
-              Home
-            </NavLink>
 
-            {serviceLinks.map((link) => (
+
+            {/* Mobile: cart + hamburger */}
+            <div className="flex items-center gap-2 md:hidden">
+              <button
+                onClick={() => setCartOpen(true)}
+                aria-label="Open cart"
+                className="relative rounded-full border border-burgundy-100 p-2 text-burgundy-700"
+              >
+                <ShoppingBag className="h-5 w-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-burgundy-800 text-[10px] font-bold text-white">
+                    {itemCount}
+                  </span>
+                )}
+              </button>
+              <button
+                className="flex items-center justify-center rounded-full border border-burgundy-100 p-2 text-burgundy-700"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              >
+                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop Lower Row */}
+          <div className="hidden md:flex w-full items-center justify-center gap-10 mt-4 relative">
+            {/* Desktop Nav */}
+            <nav className="flex items-center gap-6">
               <NavLink
-                key={link.to}
-                to={link.to}
+                to="/"
+                end
                 className={({ isActive }) =>
                   `rounded-full px-4 py-2 text-sm transition ${
                     isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
                   }`
                 }
               >
-                {link.label}
+                Home
               </NavLink>
-            ))}
 
-            <NavLink
-              to="/packages"
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm transition ${
-                  isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
-                }`
-              }
-            >
-              Packages
-            </NavLink>
+              {/* Services Dropdown */}
+              <div className="relative" ref={servicesRef}>
+                <button
+                  onClick={() => setServicesOpen(!servicesOpen)}
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm transition text-burgundy-600 hover:text-burgundy-900`}
+                >
+                  Services
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {servicesOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-burgundy-100 bg-white p-2 shadow-lg z-50">
+                    {serviceLinks.map((link) => (
+                      <NavLink
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setServicesOpen(false)}
+                        className={({ isActive }) =>
+                          `block rounded-xl px-4 py-2.5 text-sm transition ${
+                            isActive ? 'bg-burgundy-50 text-burgundy-900 font-medium' : 'text-burgundy-600 hover:bg-burgundy-50 hover:text-burgundy-900'
+                          }`
+                        }
+                      >
+                        {link.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <NavLink
-              to="/shop"
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm transition ${
-                  isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
-                }`
-              }
-            >
-              Shop
-            </NavLink>
+              <NavLink
+                to="/packages"
+                className={({ isActive }) =>
+                  `rounded-full px-4 py-2 text-sm transition ${
+                    isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
+                  }`
+                }
+              >
+                Packages
+              </NavLink>
 
-            <NavLink
-              to="/about"
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm transition ${
-                  isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
-                }`
-              }
-            >
-              About
-            </NavLink>
-          </nav>
+              {/* Shop Dropdown */}
+              <div className="relative" ref={shopRef}>
+                <button
+                  onClick={() => setShopOpen(!shopOpen)}
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm transition text-burgundy-600 hover:text-burgundy-900`}
+                >
+                  Shop
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${shopOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {shopOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-burgundy-100 bg-white p-2 shadow-lg z-50">
+                    {shopLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setShopOpen(false)}
+                        className={`block rounded-xl px-4 py-2.5 text-sm transition text-burgundy-600 hover:bg-burgundy-50 hover:text-burgundy-900`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <NavLink
-              to="/contact"
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm transition ${
-                  isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
-                }`
-              }
-            >
-              Contact
-            </NavLink>
+              <NavLink
+                to="/about"
+                className={({ isActive }) =>
+                  `rounded-full px-4 py-2 text-sm transition ${
+                    isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
+                  }`
+                }
+              >
+                About
+              </NavLink>
+            </nav>
 
-            {/* Cart button */}
-            <button
-              onClick={() => setCartOpen(true)}
-              aria-label="Open cart"
-              className="relative rounded-full border border-burgundy-100 p-2.5 text-burgundy-600 transition hover:bg-burgundy-50 hover:text-burgundy-900"
-            >
-              <ShoppingBag className="h-5 w-5" />
-              {itemCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-burgundy-800 text-[10px] font-bold text-white">
-                  {itemCount}
-                </span>
-              )}
-            </button>
+            {/* Desktop CTA */}
+            <div className="flex items-center gap-3">
+              <NavLink
+                to="/contact"
+                className={({ isActive }) =>
+                  `rounded-full px-4 py-2 text-sm transition ${
+                    isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
+                  }`
+                }
+              >
+                Contact
+              </NavLink>
 
-            <button
-              onClick={() => setEnquiryOpen(true)}
-              className="rounded-full bg-burgundy-800 px-5 py-2.5 text-sm text-white transition hover:bg-burgundy-700"
-            >
-              Enquire now
-            </button>
-          </div>
+              {/* Cart button */}
+              <button
+                onClick={() => setCartOpen(true)}
+                aria-label="Open cart"
+                className="relative rounded-full border border-burgundy-100 p-2.5 text-burgundy-600 transition hover:bg-burgundy-50 hover:text-burgundy-900"
+              >
+                <ShoppingBag className="h-5 w-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-burgundy-800 text-[10px] font-bold text-white">
+                    {itemCount}
+                  </span>
+                )}
+              </button>
 
-          {/* Mobile: cart + hamburger */}
-          <div className="flex items-center gap-2 md:hidden">
-            <button
-              onClick={() => setCartOpen(true)}
-              aria-label="Open cart"
-              className="relative rounded-full border border-burgundy-100 p-2 text-burgundy-700"
-            >
-              <ShoppingBag className="h-5 w-5" />
-              {itemCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-burgundy-800 text-[10px] font-bold text-white">
-                  {itemCount}
-                </span>
-              )}
-            </button>
-            <button
-              className="flex items-center justify-center rounded-full border border-burgundy-100 p-2 text-burgundy-700"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+              <button
+                onClick={() => setEnquiryOpen(true)}
+                className="rounded-full bg-burgundy-800 px-5 py-2.5 text-sm text-white transition hover:bg-burgundy-700"
+              >
+                Enquire now
+              </button>
+            </div>
           </div>
         </div>
 
@@ -173,9 +256,15 @@ export function Navbar() {
                   {link.label}
                 </MobileLink>
               ))}
-              <p className="mt-3 mb-1 text-xs uppercase tracking-[0.35em] text-burgundy-400">More</p>
+              <div className="my-2 h-px bg-burgundy-50" />
+              <div className="py-2 text-xs font-semibold uppercase tracking-wider text-burgundy-300">Shop</div>
+              {shopLinks.map((link) => (
+                <MobileLink key={link.to} to={link.to} onClick={() => setMobileOpen(false)}>
+                  {link.label}
+                </MobileLink>
+              ))}
+              <div className="my-2 h-px bg-burgundy-50" />
               <MobileLink to="/packages" onClick={() => setMobileOpen(false)}>Packages</MobileLink>
-              <MobileLink to="/shop" onClick={() => setMobileOpen(false)}>Shop</MobileLink>
               <MobileLink to="/about" onClick={() => setMobileOpen(false)}>About</MobileLink>
               <MobileLink to="/contact" onClick={() => setMobileOpen(false)}>Contact</MobileLink>
               <button

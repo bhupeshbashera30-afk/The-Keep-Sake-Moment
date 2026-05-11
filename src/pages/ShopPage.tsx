@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { SectionIntro } from '../components/SectionIntro'
@@ -12,10 +13,17 @@ const CATEGORIES = [
   { key: 'gift_boxes', label: 'Gift Boxes' },
   { key: 'celebration', label: 'Celebration' },
   { key: 'event_addons', label: 'Event Add-ons' },
+  { key: 'crochets', label: 'Crochets' },
 ]
 
 export function ShopPage() {
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeCategory = searchParams.get('category') || 'all'
+  
+  const setActiveCategory = (cat: string) => {
+    setSearchParams(cat === 'all' ? {} : { category: cat })
+  }
+
   const { products, loading } = useProducts(activeCategory === 'all' ? undefined : activeCategory)
   const { addItem } = useCart()
   const [added, setAdded] = useState<string | null>(null)

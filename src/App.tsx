@@ -17,6 +17,8 @@ import { OverviewPage } from './pages/admin/OverviewPage'
 import { ProductsPage } from './pages/admin/ProductsPage'
 import { OrdersPage } from './pages/admin/OrdersPage'
 import { AnalyticsPage } from './pages/admin/AnalyticsPage'
+import { EventEnquiriesPage } from './pages/admin/EventEnquiriesPage'
+import { BookingsPage } from './pages/admin/BookingsPage'
 
 export default function App() {
   return (
@@ -43,6 +45,8 @@ export default function App() {
             <Route path="/admin/products" element={<ProductsPage />} />
             <Route path="/admin/orders" element={<OrdersPage />} />
             <Route path="/admin/analytics" element={<AnalyticsPage />} />
+            <Route path="/admin/enquiries" element={<EventEnquiriesPage />} />
+            <Route path="/admin/bookings" element={<BookingsPage />} />
           </Route>
         </Routes>
       </CartProvider>

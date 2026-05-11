@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
-const serviceOptions = ['Photobooth Rental','Hampers & Flower','Dinner Night','Event & Decor','Birthday','Anniversary','Proposal','Corporate Event','Special Occasion','Packages']
+const serviceOptions = ['Photobooth Rental','Hampers & Flower','Dinner Night','Event & Decor','Ice Cream Rental','Birthday','Anniversary','Proposal','Corporate Event','Special Occasion','Packages']
 export function InquiryForm({ compact = false, initialService, initialNotes, submissionType = 'booking' }: { compact?: boolean, initialService?: string, initialNotes?: string, submissionType?: 'contact' | 'booking' }) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
