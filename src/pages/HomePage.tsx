@@ -197,7 +197,7 @@ export function HomePage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-stretch" style={{ minHeight: '600px' }}>
 
             {/* Left — Image Carousel */}
-            <div className="relative overflow-hidden rounded-[2rem] shadow-glow">
+            <div className="relative overflow-hidden rounded-[2rem] shadow-glow min-h-[500px] lg:min-h-0">
               {heroSlides.map((slide, idx) => (
                 <div
                   key={idx}
