@@ -72,6 +72,18 @@ export function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileOpen])
+
   return (
     <>
       <header 
@@ -247,7 +259,7 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="border-t border-burgundy-100 bg-white px-4 pb-6 pt-4 md:hidden overflow-y-auto max-h-[calc(100vh-80px)]">
+          <div className="border-t border-burgundy-100 bg-white px-4 pb-6 pt-4 md:hidden overflow-y-auto overscroll-contain max-h-[calc(100vh-80px)]">
             <div className="flex flex-col gap-1">
               <MobileLink to="/" onClick={() => setMobileOpen(false)}>Home</MobileLink>
               <p className="mt-3 mb-1 text-xs uppercase tracking-[0.35em] text-burgundy-400">Services</p>
