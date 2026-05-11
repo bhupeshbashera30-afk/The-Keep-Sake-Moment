@@ -14,7 +14,7 @@ export function PageLoader() {
 
   return (
     <div className={`page-loader ${hide ? 'hide' : ''}`} aria-hidden="true">
-      <img src="/images/logo-transparent-new.png" alt="The Keepsake Moment" className="loader-wordmark" style={{ height: '140px', width: 'auto' }} />
+      <img src="/images/logo-transparent-new.png" alt="The Keepsake Moment" className="loader-wordmark" />
       <div className="loader-bar-track">
         <div className="loader-bar-fill" />
       </div>

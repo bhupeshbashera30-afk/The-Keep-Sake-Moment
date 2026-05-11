@@ -37,7 +37,9 @@ button, input, textarea, select { font: inherit; }
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #591C1C;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(176,140,90,0.12), transparent 34rem),
+    linear-gradient(180deg, #fff 0%, #faf6f4 56%, #f7f1ee 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -50,15 +52,16 @@ button, input, textarea, select { font: inherit; }
   transform: scale(1.04);
 }
 .loader-wordmark {
+  width: min(68vw, 420px);
+  height: auto;
   opacity: 0;
-  filter: brightness(0) invert(1);
   animation: blurIn 1s var(--transition-expo) 0.2s forwards;
 }
 .loader-bar-track {
   margin-top: 2.5rem;
   width: clamp(160px, 30vw, 280px);
   height: 1px;
-  background: rgba(43,17,24,0.12);
+  background: rgba(43,17,24,0.14);
   overflow: hidden;
   border-radius: 9999px;
 }

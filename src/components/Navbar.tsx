@@ -86,7 +86,7 @@ export function Navbar() {
           <div className="flex w-full items-center justify-between md:justify-center relative">
             
             <Link to="/" className="flex-shrink-0 z-10">
-              <img src="/images/logo-transparent-new.png" alt="The Keepsake Moment" className="h-10 md:h-20 w-auto" />
+              <img src="/images/logo-transparent-new.png" alt="The Keepsake Moment" className="h-12 w-auto object-contain md:h-24" />
             </Link>
 
 
