@@ -4,6 +4,7 @@ import { Menu, X, ShoppingBag, ChevronDown } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { CartDrawer } from './CartDrawer'
 import { InquiryModal } from './InquiryModal'
+import { marqueeItems } from '../lib/data'
 
 const serviceLinks = [
   { to: '/services/hampers-and-flower', label: 'Flower & Bouquet' },
@@ -80,10 +81,26 @@ export function Navbar() {
 
   return (
     <>
+      {/* ── Marquee (Top Bar) ─────────────────────────────── */}
+      <div className="border-b border-burgundy-100 bg-[#faf6f3] py-2 md:py-2.5 overflow-hidden">
+        <div className="marquee-track">
+          <div className="marquee-inner">
+            {[...marqueeItems, ...marqueeItems].map((item, index) => (
+              <span
+                key={`${item}-${index}`}
+                className="font-serif text-xs md:text-sm text-burgundy-800 uppercase tracking-[0.2em] select-none px-8"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <header 
-        className={`sticky top-0 z-50 transition-all duration-300 ${
+        className={`sticky top-0 z-50 ${
           scrolled 
-            ? 'bg-white/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.05)] border-b border-white/50' 
+            ? 'bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.05)] border-b border-white/50' 
             : 'bg-transparent border-transparent'
         }`}
       >

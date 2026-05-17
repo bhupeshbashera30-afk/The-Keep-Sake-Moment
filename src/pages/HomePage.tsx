@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Camera, Gift, Moon, PartyPopper, HeartHandshake, Star, Clock, Award, IceCream, Flower2, ShoppingBag, ChevronLeft, ChevronRight, Quote } from 'lucide-react'
 import { SectionIntro } from '../components/SectionIntro'
 import { ScrollReveal } from '../components/ScrollReveal'
-import { marqueeItems } from '../lib/data'
+
 import { useProducts, type Product } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
 
@@ -192,21 +192,6 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* ── Marquee ─────────────────────────────────────── */}
-        <div className="border-y border-burgundy-100 bg-white/60 py-4">
-          <div className="marquee-track">
-            <div className="marquee-inner">
-              {[...marqueeItems, ...marqueeItems].map((item, index) => (
-                <span
-                  key={`${item}-${index}`}
-                  className="font-serif text-3xl text-burgundy-800 md:text-5xl select-none"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Stats section REMOVED */}
