@@ -10,9 +10,6 @@ const CATEGORIES = [
   { key: 'all', label: 'All' },
   { key: 'hampers', label: 'Hampers' },
   { key: 'flowers', label: 'Flowers' },
-  { key: 'gift_boxes', label: 'Gift Boxes' },
-  { key: 'celebration', label: 'Celebration' },
-  { key: 'event_addons', label: 'Event Add-ons' },
   { key: 'crochets', label: 'Crochets' },
 ]
 
@@ -45,7 +42,7 @@ export function ShopPage() {
               Shop &amp; Gift
             </h1>
             <p className="mt-5 max-w-lg text-lg text-burgundy-600">
-              Curated hampers, flowers, gift boxes, and celebration add-ons — everything to make moments unforgettable.
+              Curated hampers, flowers, and handcrafted crochets — everything to make moments unforgettable.
             </p>
           </ScrollReveal>
         </div>

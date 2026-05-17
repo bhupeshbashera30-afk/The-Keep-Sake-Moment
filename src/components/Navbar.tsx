@@ -6,29 +6,14 @@ import { CartDrawer } from './CartDrawer'
 import { InquiryModal } from './InquiryModal'
 
 const serviceLinks = [
+  { to: '/services/hampers-and-flower', label: 'Flower & Bouquet' },
   { to: '/services/photobooth-rental', label: 'Photobooth Rental' },
-  { to: '/services/hampers-and-flower', label: 'Hampers & Flower' },
   { to: '/services/dinner-night', label: 'Dinner Night' },
-  { to: '/services/event-and-decor', label: 'Event & Decor' },
-  { to: '/services/ice-cream-rental', label: 'Ice Cream Rental' },
 ]
 
 const shopLinks = [
-  { to: '/shop?category=hampers', label: 'Hampers' },
-  { to: '/shop?category=flowers', label: 'Flowers' },
-  { to: '/shop?category=gift_boxes', label: 'Gift Boxes' },
-  { to: '/shop?category=celebration', label: 'Celebration' },
-  { to: '/shop?category=event_addons', label: 'Event Add-ons' },
-  { to: '/shop?category=crochets', label: 'Crochets' },
-]
-
-// Task 5: Simplified mobile-only nav links
-const mobileNavLinks = [
-  { to: '/services/hampers-and-flower', label: 'Flower & Bouquet' },
   { to: '/shop?category=hampers', label: 'Hamper' },
   { to: '/shop?category=crochets', label: 'Crochet' },
-  { to: '/services/dinner-night', label: 'Dinner Night' },
-  { to: '/services/photobooth-rental', label: 'Photobooth Rental' },
 ]
 
 export function Navbar() {
@@ -181,16 +166,6 @@ export function Navbar() {
                 )}
               </div>
 
-              <NavLink
-                to="/packages"
-                className={({ isActive }) =>
-                  `rounded-full px-4 py-2 text-sm transition ${
-                    isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
-                  }`
-                }
-              >
-                Packages
-              </NavLink>
 
               {/* Shop Dropdown */}
               <div className="relative" ref={shopRef}>
@@ -270,14 +245,21 @@ export function Navbar() {
         {mobileOpen && (
           <div className="border-t border-burgundy-100 bg-white px-4 pb-6 pt-4 md:hidden overflow-y-auto overscroll-contain max-h-[calc(100vh-80px)]">
             <div className="flex flex-col gap-1">
-              {/* Task 5: Only these 5 links, no section labels */}
-              {mobileNavLinks.map((link) => (
+              <MobileLink to="/" onClick={() => setMobileOpen(false)}>Home</MobileLink>
+              <p className="mt-3 mb-1 text-xs uppercase tracking-[0.35em] text-burgundy-400">Services</p>
+              {serviceLinks.map((link) => (
                 <MobileLink key={link.to} to={link.to} onClick={() => setMobileOpen(false)}>
                   {link.label}
                 </MobileLink>
               ))}
               <div className="my-2 h-px bg-burgundy-50" />
-              <MobileLink to="/packages" onClick={() => setMobileOpen(false)}>Packages</MobileLink>
+              <div className="py-2 text-xs font-semibold uppercase tracking-wider text-burgundy-300">Shop</div>
+              {shopLinks.map((link) => (
+                <MobileLink key={link.to} to={link.to} onClick={() => setMobileOpen(false)}>
+                  {link.label}
+                </MobileLink>
+              ))}
+              <div className="my-2 h-px bg-burgundy-50" />
               <MobileLink to="/about" onClick={() => setMobileOpen(false)}>About</MobileLink>
               <MobileLink to="/contact" onClick={() => setMobileOpen(false)}>Contact</MobileLink>
               <button
