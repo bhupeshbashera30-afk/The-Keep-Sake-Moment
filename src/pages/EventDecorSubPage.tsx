@@ -1,57 +1,13 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { ScrollReveal } from '../components/ScrollReveal'
-import { supabase, type ServiceRecord } from '../lib/supabase'
-
-const subpageMeta: Record<string, { title: string; description: string; categoryNote: string; tags: string[] }> = {
-  birthday: {
-    title: 'Birthday Décor',
-    description:
-      'Bespoke birthday setups designed around your vision — from intimate dining to full celebration styling. Every detail shaped to the occasion.',
-    categoryNote: 'birthday',
-    tags: ['Balloons & Florals', 'Themed Setups', 'Custom Backdrops', 'Cake Tables'],
-  },
-  anniversary: {
-    title: 'Anniversary Styling',
-    description:
-      'Romantic, editorial anniversary setups that honour milestones with elegance and warmth. Custom to every couple.',
-    categoryNote: 'anniversary',
-    tags: ['Romantic Lighting', 'Floral Arches', 'Table Styling', 'Custom Signage'],
-  },
-  proposal: {
-    title: 'Proposal Concepts',
-    description:
-      'Intimate, one-of-a-kind proposal setups crafted around the story of the two of you. The team handles every detail.',
-    categoryNote: 'proposal',
-    tags: ['Petal Pathways', 'Candle Setups', 'Floral Tunnels', 'Personalised Touches'],
-  },
-  corporate: {
-    title: 'Corporate Events',
-    description:
-      'Premium brand-led event styling for corporate occasions — launches, celebrations, and team events with a refined editorial finish.',
-    categoryNote: 'corporate',
-    tags: ['Brand-Aligned Decor', 'Stage Styling', 'Branded Installations', 'Table Settings'],
-  },
-  'special-occasion': {
-    title: 'Special Occasions',
-    description:
-      'Designed for moments that do not fit a standard category. Whatever the occasion, the team will shape an experience worth keeping.',
-    categoryNote: 'special occasion',
-    tags: ['Fully Custom', 'Any Occasion', 'Any Scale', 'Any Vision'],
-  },
-}
-
-const decorSubpages = [
-  { slug: 'birthday', label: 'Birthday' },
-  { slug: 'anniversary', label: 'Anniversary' },
-  { slug: 'proposal', label: 'Proposal' },
-  { slug: 'corporate', label: 'Corporate Event' },
-  { slug: 'special-occasion', label: 'Special Occasion' },
-]
+import { supabase } from '../lib/supabase'
+import { applyImageFallback, imageFallbackSource } from '../lib/imageFallbacks'
+import { EVENT_DECOR_SUBPAGES, eventDecorSubpageBySlug } from '../lib/siteConfig'
 
 export function EventDecorSubPage() {
   const { subslug = 'birthday' } = useParams()
-  const meta = subpageMeta[subslug]
+  const meta = eventDecorSubpageBySlug(subslug)
 
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -114,7 +70,7 @@ export function EventDecorSubPage() {
           {/* Subpage tabs */}
           <ScrollReveal direction="up" delay={150}>
             <div className="mt-8 flex flex-wrap gap-2">
-              {decorSubpages.map((sub) => (
+              {EVENT_DECOR_SUBPAGES.map((sub) => (
                 <Link
                   key={sub.slug}
                   to={`/services/event-and-decor/${sub.slug}`}
@@ -147,26 +103,21 @@ export function EventDecorSubPage() {
           </div>
         ) : items.length > 0 ? (
           <ScrollReveal stagger>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
               {items.map((item) => (
-                <article key={item.id} className="card-lift flex flex-col rounded-[2rem] border border-burgundy-100 bg-white p-8 shadow-soft">
-                  {item.image_url || item.hero_image ? (
-                    <img
-                      src={item.image_url ?? item.hero_image ?? ''}
-                      alt={item.name}
-                      className="mb-6 h-48 w-full rounded-2xl object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="mb-6 flex h-48 items-center justify-center rounded-2xl bg-gradient-to-br from-burgundy-50 to-burgundy-100/40">
-                      <span className="font-serif text-4xl text-burgundy-200">KM</span>
-                    </div>
-                  )}
-                  <h3 className="font-serif text-2xl text-burgundy-950">{item.name}</h3>
-                  <p className="mt-3 flex-1 text-sm leading-7 text-burgundy-700">{item.description}</p>
+                <article key={item.id} className="card-lift flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-[2rem] md:p-8">
+                  <img
+                    src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
+                    alt={item.name}
+                    className="mb-3 h-28 w-full rounded-lg object-cover sm:h-36 md:mb-6 md:h-48 md:rounded-2xl"
+                    loading="lazy"
+                    onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, subslug))}
+                  />
+                  <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-2xl">{item.name}</h3>
+                  <p className="mt-1.5 flex-1 text-[11px] leading-5 text-burgundy-700 line-clamp-3 md:mt-3 md:text-sm md:leading-7 md:line-clamp-none">{item.description}</p>
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I am interested in ${item.name} for my ${meta.title} event.` } }))}
-                    className="btn-magnetic mt-6 block w-full rounded-full border border-burgundy-300 px-5 py-3 text-center text-sm text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white"
+                    className="btn-magnetic mt-3 block w-full rounded-full border border-burgundy-300 px-3 py-1.5 text-center text-[11px] text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white md:mt-6 md:px-5 md:py-3 md:text-sm"
                   >
                     Enquire
                   </button>

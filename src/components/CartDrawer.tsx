@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 import { X, ShoppingBag, Trash2, Plus, Minus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { applyImageFallback, imageFallbackSource, productImageSource } from '../lib/imageFallbacks'
 
 interface Props {
   open: boolean
@@ -82,12 +83,13 @@ export function CartDrawer({ open, onClose }: Props) {
               {cart.map(item => (
                 <li key={item.id} className="flex gap-4">
                   <img
-                    src={item.image_url || `https://picsum.photos/seed/${item.id}/80/80`}
+                    src={productImageSource(item.image_url, item.id, item.category)}
                     alt={item.name}
                     className="h-16 w-16 flex-shrink-0 rounded-xl object-cover"
                     width={64}
                     height={64}
                     loading="lazy"
+                    onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, item.category))}
                   />
                   <div className="flex flex-1 flex-col gap-1.5 min-w-0">
                     <div className="flex items-start justify-between gap-2">

@@ -4,19 +4,10 @@ import { Menu, X, ShoppingBag, ChevronDown } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { CartDrawer } from './CartDrawer'
 import { InquiryModal } from './InquiryModal'
-import { marqueeItems } from '../lib/data'
+import { NAV_MARQUEE_ITEMS, SERVICE_CATEGORIES, SHOP_CATEGORIES } from '../lib/siteConfig'
 
-const serviceLinks = [
-  { to: '/services/event-and-decor', label: 'Event & Decor' },
-  { to: '/services/photobooth-rental', label: 'Photobooth Rental' },
-  { to: '/services/dinner-night', label: 'Dinner Night' },
-]
-
-const shopLinks = [
-  { to: '/shop?category=flowers', label: 'Flower & Bouquet' },
-  { to: '/shop?category=hampers', label: 'Hamper' },
-  { to: '/shop?category=crochets', label: 'Crochet' },
-]
+const serviceLinks = SERVICE_CATEGORIES.map((category) => ({ to: category.route, label: category.label }))
+const shopLinks = SHOP_CATEGORIES.map((category) => ({ to: `/shop?category=${category.key}`, label: category.label }))
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -86,7 +77,7 @@ export function Navbar() {
       <div className="border-b border-burgundy-100 bg-[#faf6f3] py-2 md:py-2.5 overflow-hidden">
         <div className="marquee-track">
           <div className="marquee-inner">
-            {[...marqueeItems, ...marqueeItems].map((item, index) => (
+            {[...NAV_MARQUEE_ITEMS, ...NAV_MARQUEE_ITEMS].map((item, index) => (
               <span
                 key={`${item}-${index}`}
                 className="font-serif text-xs md:text-sm text-burgundy-800 uppercase tracking-[0.2em] select-none px-8"

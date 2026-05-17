@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
-const serviceOptions = ['Photobooth Rental','Hampers & Flower','Dinner Night','Event & Decor','Birthday','Anniversary','Proposal','Corporate Event','Special Occasion']
+import { INQUIRY_SERVICE_OPTIONS } from '../lib/siteConfig'
 export function InquiryForm({ compact = false, initialService, initialNotes, submissionType = 'booking' }: { compact?: boolean, initialService?: string, initialNotes?: string, submissionType?: 'contact' | 'booking' }) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -67,7 +67,7 @@ ${notes}`.trim()
         <label className="space-y-2 text-sm text-burgundy-700">Full Name<input name="full_name" required className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400" /></label>
         <label className="space-y-2 text-sm text-burgundy-700">Email<input type="email" name="email" required className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400" /></label>
         <label className="space-y-2 text-sm text-burgundy-700">Phone<input name="phone" required className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400" /></label>
-        <label className="space-y-2 text-sm text-burgundy-700">Service Needed<select name="service_interest" required defaultValue={initialService || ''} className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400"><option value="">Choose a service</option>{serviceOptions.map((option) => (<option key={option} value={option}>{option}</option>))}</select></label>
+        <label className="space-y-2 text-sm text-burgundy-700">Service Needed<select name="service_interest" required defaultValue={initialService || ''} className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400"><option value="">Choose a service</option>{INQUIRY_SERVICE_OPTIONS.map((option) => (<option key={option} value={option}>{option}</option>))}</select></label>
         <label className="space-y-2 text-sm text-burgundy-700">Event Date<input type="date" name="event_date" className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400" /></label>
         <label className="space-y-2 text-sm text-burgundy-700">Event Location<input name="event_location" className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400" /></label>
         <label className="space-y-2 text-sm text-burgundy-700">Budget Range<input name="budget_range" placeholder="₹10,000 - ₹25,000" className="w-full rounded-2xl border border-burgundy-200 bg-parchment px-4 py-3 outline-none transition focus:border-burgundy-400" /></label>

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { SHOP_CATEGORIES } from '../../lib/siteConfig'
 
 type Order = {
   id: string
@@ -156,17 +157,17 @@ export function OverviewPage() {
     async function loadStats() {
       if (!supabase) { setLoading(false); return }
 
-      const [ordersRes, productsRes, servicesRes, bookingRes, contactRes] = await Promise.all([
+      const [ordersRes, productsRes, bookingRes, contactRes] = await Promise.all([
         supabase.from('orders').select('id,customer_name,email,phone,total,payment_status,order_status,created_at').order('created_at', { ascending: false }),
-        supabase.from('products').select('id,is_active'),
-        supabase.from('services').select('id,is_active'),
+        supabase.from('products').select('id,is_active,category'),
         supabase.from('booking_requests').select('id,full_name,email,phone,service_interest,created_at').order('created_at', { ascending: false }).limit(8),
         supabase.from('contact_submissions').select('id,full_name,email,phone,subject,created_at').order('created_at', { ascending: false }).limit(8),
       ])
 
       const orders = ((ordersRes.data ?? []) as Order[])
       const products = productsRes.data ?? []
-      const services = servicesRes.data ?? []
+      const shopCategoryKeys = new Set(SHOP_CATEGORIES.map((category) => category.key))
+      const serviceProducts = products.filter((product: any) => !shopCategoryKeys.has(product.category))
       const bookings = bookingRes.error ? [] : (bookingRes.data ?? []).map(normalizeBooking)
       const contacts = contactRes.error ? [] : (contactRes.data ?? []).map(normalizeContact)
       const enquiries = [...bookings, ...contacts]
@@ -183,8 +184,8 @@ export function OverviewPage() {
         pendingOrders: orders.filter(order => order.payment_status === 'pending').length,
         totalProducts: products.length,
         activeProducts: products.filter((product: any) => product.is_active).length,
-        totalServices: services.length,
-        activeServices: services.filter((service: any) => service.is_active).length,
+        totalServices: serviceProducts.length,
+        activeServices: serviceProducts.filter((service: any) => service.is_active).length,
         recentOrders: orders.slice(0, 6),
         recentEnquiries: enquiries,
         chartPoints: buildChartPoints(orders),

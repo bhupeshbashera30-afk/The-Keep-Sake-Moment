@@ -6,93 +6,8 @@ import { ScrollReveal } from '../components/ScrollReveal'
 
 import { useProducts, type Product } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
-
-/* ── Hero Slides — rotating service images ────────────────── */
-const heroSlides = [
-  {
-    image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=1600&auto=format&fit=crop',
-    occasion: 'Photobooth Rental',
-    tagline: 'Capture every moment',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?q=80&w=1600&auto=format&fit=crop',
-    occasion: 'Hampers & Flowers',
-    tagline: 'Gifts worth keeping',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=1600&auto=format&fit=crop',
-    occasion: 'Dinner Nights',
-    tagline: 'Intimate moments, curated',
-  },
-]
-
-/* ── Category Cards ───────────────────────────────────────── */
-const categories = [
-  {
-    name: 'Event & Decor',
-    slug: '/services/event-and-decor',
-    image: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop',
-    color: 'from-emerald-100 to-teal-50',
-  },
-  {
-    name: 'Flower Bouquet',
-    slug: '/shop?category=flowers',
-    image: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?q=80&w=600&auto=format&fit=crop',
-    color: 'from-rose-100 to-pink-50',
-  },
-  {
-    name: 'Hampers',
-    slug: '/services/hampers-and-flower',
-    image: '/images/hampers-category.png',
-    color: 'from-amber-100 to-orange-50',
-  },
-  {
-    name: 'Crochet',
-    slug: '/shop?category=crochets',
-    image: '/images/crochets-category.png',
-    color: 'from-pink-100 to-rose-50',
-  },
-  {
-    name: 'Photobooth Rental',
-    slug: '/services/photobooth-rental',
-    image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=600&auto=format&fit=crop',
-    color: 'from-purple-100 to-violet-50',
-  },
-  {
-    name: 'Dinner Night',
-    slug: '/services/dinner-night',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=600&auto=format&fit=crop',
-    color: 'from-burgundy-100 to-rose-50',
-  },
-]
-
-/* ── Testimonials ─────────────────────────────────────────── */
-const testimonials = [
-  {
-    name: 'Priya Sharma',
-    event: 'Birthday Celebration',
-    text: 'Keepsake Moments turned my 30th birthday into something straight out of a magazine. Every detail was perfect — from the balloon setup to the cake table styling.',
-    rating: 5,
-  },
-  {
-    name: 'Rohan & Ananya',
-    event: 'Anniversary Dinner',
-    text: 'The dinner night setup was breathtaking. The candles, the flowers, the mood lighting — it felt like a private restaurant just for us. Truly unforgettable.',
-    rating: 5,
-  },
-  {
-    name: 'Meera Kapoor',
-    event: 'Corporate Event',
-    text: 'Professional, creative, and so easy to work with. Our corporate gala looked absolutely stunning. The photobooth was a massive hit with everyone!',
-    rating: 5,
-  },
-  {
-    name: 'Vikram Patel',
-    event: 'Proposal Setup',
-    text: 'I wanted the proposal to be perfect and Keepsake Moments delivered beyond my wildest expectations. She said yes in the most beautiful setting imaginable.',
-    rating: 5,
-  },
-]
+import { applyImageFallback, imageFallbackSource, productImageSource } from '../lib/imageFallbacks'
+import { HERO_SLIDES, HOME_CATEGORY_CARDS, SHOP_CATEGORIES, TESTIMONIALS } from '../lib/siteConfig'
 
 /* ── Stats — REMOVED ── */
 
@@ -104,7 +19,7 @@ export function HomePage() {
   const startSlideTimer = useCallback(() => {
     if (slideTimer.current) clearInterval(slideTimer.current)
     slideTimer.current = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
     }, 5000)
   }, [])
 
@@ -117,14 +32,15 @@ export function HomePage() {
     setCurrentSlide(idx)
     startSlideTimer()
   }
-  const prevSlide = () => goToSlide((currentSlide - 1 + heroSlides.length) % heroSlides.length)
-  const nextSlide = () => goToSlide((currentSlide + 1) % heroSlides.length)
+  const prevSlide = () => goToSlide((currentSlide - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)
+  const nextSlide = () => goToSlide((currentSlide + 1) % HERO_SLIDES.length)
 
   /* ── Quick grabs products ───────────────────────────────── */
   const { products, loading: productsLoading } = useProducts()
   const { addItem } = useCart()
   const [addedId, setAddedId] = useState<string | null>(null)
-  const quickGrabs = products.slice(0, 6)
+  const shopCategoryKeys = new Set(SHOP_CATEGORIES.map((category) => category.key))
+  const quickGrabs = products.filter((product) => shopCategoryKeys.has(product.category)).slice(0, 6)
 
   const handleAdd = (product: Product) => {
     addItem({ id: product.id, name: product.name, price: product.price, image_url: product.image_url ?? undefined, category: product.category })
@@ -138,7 +54,7 @@ export function HomePage() {
       <section className="relative overflow-hidden bg-[#faf6f3]">
         {/* Full-width landscape image carousel */}
         <div className="relative w-full h-[clamp(220px,45vh,520px)] md:h-[clamp(380px,65vh,760px)]">
-          {heroSlides.map((slide, idx) => (
+          {HERO_SLIDES.map((slide, idx) => (
             <div
               key={idx}
               className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
@@ -161,10 +77,10 @@ export function HomePage() {
           <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-14 lg:p-20">
             <div className="relative z-10">
               <p className="text-xs uppercase tracking-[0.4em] text-white/70">
-                {heroSlides[currentSlide].occasion}
+                {HERO_SLIDES[currentSlide].occasion}
               </p>
               <h1 className="mt-2 font-serif text-4xl text-white md:text-6xl lg:text-7xl">
-                {heroSlides[currentSlide].tagline}
+                {HERO_SLIDES[currentSlide].tagline}
               </h1>
               <div className="mt-5 flex flex-wrap items-center gap-4">
                 <button
@@ -182,7 +98,7 @@ export function HomePage() {
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="flex gap-2">
-                {heroSlides.map((_, idx) => (
+                {HERO_SLIDES.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => goToSlide(idx)}
@@ -216,10 +132,10 @@ export function HomePage() {
 
           {/* 2-col on mobile, original desktop layout */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-5">
-            {categories.map((cat, idx) => (
-              <ScrollReveal key={cat.name} direction="up" delay={(idx % 4) * 80} className="h-full">
+            {HOME_CATEGORY_CARDS.map((cat, idx) => (
+              <ScrollReveal key={cat.slug} direction="up" delay={(idx % 4) * 80} className="h-full">
                 <Link
-                  to={cat.slug}
+                  to={cat.route}
                   className="card-lift group relative flex h-full flex-col overflow-hidden rounded-[1.2rem] border border-burgundy-100 bg-white shadow-soft md:rounded-[1.5rem]"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">
@@ -227,14 +143,14 @@ export function HomePage() {
                       src={cat.image}
                       srcSet={cat.image.includes('unsplash.com') ? `${cat.image.replace('w=600', 'w=300').replace('q=80', 'q=60')} 300w, ${cat.image} 600w` : undefined}
                       sizes="(max-width: 768px) 300px, 600px"
-                      alt={cat.name}
+                      alt={cat.label}
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
                   </div>
                   <div className="flex flex-1 items-center justify-between px-3 py-2.5 sm:px-5 sm:py-4">
-                    <h3 className="font-serif text-sm text-burgundy-950 leading-tight sm:text-xl">{cat.name}</h3>
+                    <h3 className="font-serif text-sm text-burgundy-950 leading-tight sm:text-xl">{cat.label}</h3>
                     <span className="flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-burgundy-50 text-burgundy-600 text-xs transition group-hover:bg-burgundy-800 group-hover:text-white">
                       →
                     </span>
@@ -259,7 +175,7 @@ export function HomePage() {
 
           {/* Mobile: horizontal scroll; Desktop: 4-col grid */}
           <div className="mt-10 -mx-4 px-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:pb-0" style={{ scrollbarWidth: 'none' }}>
-            {testimonials.map((t, idx) => (
+            {TESTIMONIALS.map((t, idx) => (
               <article
                 key={t.name}
                 className="snap-start shrink-0 w-[72vw] max-w-[260px] card-lift flex flex-col rounded-[1.2rem] border border-burgundy-100 bg-parchment p-4 shadow-soft md:w-auto md:max-w-none md:rounded-[1.5rem] md:p-6"
@@ -327,10 +243,11 @@ export function HomePage() {
                   <article className="card-lift group flex h-full flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft sm:rounded-2xl sm:p-3">
                     <div className="relative overflow-hidden rounded-lg sm:rounded-xl">
                       <img
-                        src={product.image_url || `https://picsum.photos/seed/${product.id}/400/300`}
+                        src={productImageSource(product.image_url, product.id, product.category)}
                         alt={product.name}
                         className="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
                         loading="lazy"
+                        onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
                       />
                       <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur sm:left-2 sm:top-2 sm:px-2 sm:text-[10px]">
                         {product.category.replace('_', ' ')}

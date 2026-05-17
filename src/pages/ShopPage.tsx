@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
 import { ScrollReveal } from '../components/ScrollReveal'
-import { SectionIntro } from '../components/SectionIntro'
 import { useProducts, type Product } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
+import { applyImageFallback, imageFallbackSource, productImageSource } from '../lib/imageFallbacks'
+import { SHOP_CATEGORIES as SHOP_CATEGORY_CONFIG } from '../lib/siteConfig'
 
 const CATEGORIES = [
   { key: 'all', label: 'All' },
-  { key: 'hampers', label: 'Hampers' },
-  { key: 'flowers', label: 'Flowers' },
-  { key: 'crochets', label: 'Crochets' },
+  ...SHOP_CATEGORY_CONFIG,
 ]
+
+const SHOP_CATEGORIES = new Set(SHOP_CATEGORY_CONFIG.map((cat) => cat.key))
 
 export function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -22,6 +23,7 @@ export function ShopPage() {
   }
 
   const { products, loading } = useProducts(activeCategory === 'all' ? undefined : activeCategory)
+  const shopProducts = products.filter((product) => SHOP_CATEGORIES.has(product.category))
   const { addItem } = useCart()
   const [added, setAdded] = useState<string | null>(null)
 
@@ -72,53 +74,54 @@ export function ShopPage() {
       {/* Products Grid */}
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
         {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="animate-pulse rounded-3xl border border-burgundy-100 bg-white p-6 shadow-soft">
-                <div className="mb-5 h-52 w-full rounded-2xl bg-burgundy-100" />
+              <div key={i} className="animate-pulse rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-3xl md:p-6">
+                <div className="mb-3 h-28 w-full rounded-lg bg-burgundy-100 sm:h-36 md:mb-5 md:h-52 md:rounded-2xl" />
                 <div className="mb-2 h-4 w-3/4 rounded-full bg-burgundy-100" />
                 <div className="mb-4 h-3 w-1/2 rounded-full bg-burgundy-50" />
                 <div className="h-10 w-full rounded-full bg-burgundy-100" />
               </div>
             ))}
           </div>
-        ) : products.length === 0 ? (
+        ) : shopProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-28 text-center">
             <ShoppingCart className="mb-4 h-12 w-12 text-burgundy-200" />
             <p className="font-serif text-2xl text-burgundy-300">No products found</p>
             <p className="mt-2 text-sm text-burgundy-400">Check back soon or try another category.</p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product, idx) => (
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
+              {shopProducts.map((product, idx) => (
                 <ScrollReveal key={product.id} direction="up" delay={(idx % 3) * 100} className="h-full">
                   <article
-                    className="card-lift group flex h-full flex-col rounded-3xl border border-burgundy-100 bg-white p-6 shadow-soft"
+                    className="card-lift group flex h-full flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-3xl md:p-6"
                   >
-                    <div className="relative mb-5 overflow-hidden rounded-2xl">
+                    <div className="relative mb-3 overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
                       <img
-                        src={product.image_url || `https://picsum.photos/seed/${product.id}/600/400`}
+                        src={productImageSource(product.image_url, product.id, product.category)}
                         alt={product.name}
-                        className="h-52 w-full object-cover transition duration-500 group-hover:scale-105"
+                        className="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36 md:h-52"
                         loading="lazy"
                         width={600}
                         height={400}
+                        onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
                       />
-                      <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-burgundy-700 backdrop-blur">
+                      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur md:left-3 md:top-3 md:px-3 md:py-1 md:text-xs">
                         {product.category.replace('_', ' ')}
                       </span>
                     </div>
-                    <h3 className="font-serif text-xl text-burgundy-950">{product.name}</h3>
-                    <p className="mt-1.5 flex-1 text-sm leading-relaxed text-burgundy-600">
+                    <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{product.name}</h3>
+                    <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed md:line-clamp-none">
                       {product.description}
                     </p>
-                    <div className="mt-5 flex items-center justify-between">
-                      <span className="font-serif text-2xl text-burgundy-900">
+                    <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-between md:gap-3">
+                      <span className="font-serif text-sm text-burgundy-900 md:text-2xl">
                         ₹{product.price.toLocaleString('en-IN')}
                       </span>
                       <button
                         onClick={() => handleAdd(product)}
-                        className={`rounded-full px-5 py-2.5 text-sm font-medium transition ${
+                        className={`rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm ${
                           added === product.id
                             ? 'bg-green-600 text-white'
                             : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
