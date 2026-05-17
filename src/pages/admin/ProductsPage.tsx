@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, X, Check, Package, Upload, ImageIcon } from 'luci
 import { useAllProducts, type Product } from '../../hooks/useProducts'
 import { supabase } from '../../lib/supabase'
 
-const CATEGORIES = ['hampers', 'flowers', 'crochets']
+const CATEGORIES = ['hampers', 'flowers', 'crochets', 'photobooth-rental', 'dinner-night', 'event-and-decor']
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 
