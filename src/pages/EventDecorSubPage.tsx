@@ -53,24 +53,22 @@ export function EventDecorSubPage() {
   const { subslug = 'birthday' } = useParams()
   const meta = subpageMeta[subslug]
 
-  const [items, setItems] = useState<ServiceRecord[]>([])
+  const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
     if (!supabase) { setLoading(false); return }
     supabase
-      .from('services')
+      .from('products')
       .select('*')
       .eq('is_active', true)
-      .eq('category_id', 4)
-      .ilike('name', `%${meta?.categoryNote ?? subslug}%`)
-      .order('sort_order')
+      .eq('category', subslug)
       .then(({ data }) => {
-        setItems((data as ServiceRecord[]) ?? [])
+        setItems(data || [])
         setLoading(false)
       })
-  }, [subslug, meta])
+  }, [subslug])
 
   if (!meta) {
     return (
@@ -165,7 +163,7 @@ export function EventDecorSubPage() {
                     </div>
                   )}
                   <h3 className="font-serif text-2xl text-burgundy-950">{item.name}</h3>
-                  <p className="mt-3 flex-1 text-sm leading-7 text-burgundy-700">{item.short_description}</p>
+                  <p className="mt-3 flex-1 text-sm leading-7 text-burgundy-700">{item.description}</p>
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I am interested in ${item.name} for my ${meta.title} event.` } }))}
                     className="btn-magnetic mt-6 block w-full rounded-full border border-burgundy-300 px-5 py-3 text-center text-sm text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white"
