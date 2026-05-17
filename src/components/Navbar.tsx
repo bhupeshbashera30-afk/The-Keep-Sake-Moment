@@ -22,6 +22,15 @@ const shopLinks = [
   { to: '/shop?category=crochets', label: 'Crochets' },
 ]
 
+// Task 5: Simplified mobile-only nav links
+const mobileNavLinks = [
+  { to: '/services/hampers-and-flower', label: 'Flower & Bouquet' },
+  { to: '/shop?category=hampers', label: 'Hamper' },
+  { to: '/shop?category=crochets', label: 'Crochet' },
+  { to: '/services/dinner-night', label: 'Dinner Night' },
+  { to: '/services/photobooth-rental', label: 'Photobooth Rental' },
+]
+
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
@@ -261,16 +270,8 @@ export function Navbar() {
         {mobileOpen && (
           <div className="border-t border-burgundy-100 bg-white px-4 pb-6 pt-4 md:hidden overflow-y-auto overscroll-contain max-h-[calc(100vh-80px)]">
             <div className="flex flex-col gap-1">
-              <MobileLink to="/" onClick={() => setMobileOpen(false)}>Home</MobileLink>
-              <p className="mt-3 mb-1 text-xs uppercase tracking-[0.35em] text-burgundy-400">Services</p>
-              {serviceLinks.map((link) => (
-                <MobileLink key={link.to} to={link.to} onClick={() => setMobileOpen(false)}>
-                  {link.label}
-                </MobileLink>
-              ))}
-              <div className="my-2 h-px bg-burgundy-50" />
-              <div className="py-2 text-xs font-semibold uppercase tracking-wider text-burgundy-300">Shop</div>
-              {shopLinks.map((link) => (
+              {/* Task 5: Only these 5 links, no section labels */}
+              {mobileNavLinks.map((link) => (
                 <MobileLink key={link.to} to={link.to} onClick={() => setMobileOpen(false)}>
                   {link.label}
                 </MobileLink>
