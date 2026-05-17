@@ -2,48 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase, type ServiceRecord } from '../lib/supabase'
-import { services as staticServices } from '../lib/data'
-
-const categoryMeta: Record<string, { eyebrow: string; description: string }> = {
-  'photobooth-rental': {
-    eyebrow: 'Photobooth Rental',
-    description:
-      'Elegant booth setups styled for social and brand-led events. Pricing is personalised after discussing event scale, setup, and styling direction.',
-  },
-  'hampers-and-flower': {
-    eyebrow: 'Hampers & Flower',
-    description:
-      'Luxury gifting collections with flowers, curated pairings, and ready-price selections for birthdays, anniversaries, and special occasions.',
-  },
-  'dinner-night': {
-    eyebrow: 'Dinner Night',
-    description:
-      'Styled dining experiences designed around mood, lighting, and personal atmosphere. Fixed-price setups alongside custom add-ons.',
-  },
-  'event-and-decor': {
-    eyebrow: 'Event & Decor',
-    description:
-      'Celebration styling for every occasion — birthdays, anniversaries, proposals, corporate events, and special gatherings.',
-  },
-  'ice-cream-rental': {
-    eyebrow: 'Ice Cream Rental',
-    description:
-      'Premium ice cream cart and sundae bar rentals for events, parties, and celebrations. A sweet, fun addition to make any occasion more memorable.',
-  },
-}
-
-const decorSubpages = [
-  { slug: 'birthday', label: 'Birthday' },
-  { slug: 'anniversary', label: 'Anniversary' },
-  { slug: 'proposal', label: 'Proposal' },
-  { slug: 'corporate', label: 'Corporate Event' },
-  { slug: 'special-occasion', label: 'Special Occasion' },
-]
+import { applyImageFallback, imageFallbackSource } from '../lib/imageFallbacks'
+import { EVENT_DECOR_SUBPAGES, serviceCategoryBySlug } from '../lib/siteConfig'
 
 export function ServicesPage() {
   const { slug = 'photobooth-rental' } = useParams()
-  const meta = categoryMeta[slug]
-  const staticFallback = staticServices[slug as keyof typeof staticServices]
+  const meta = serviceCategoryBySlug(slug)
 
   const [items, setItems] = useState<ServiceRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,7 +58,7 @@ export function ServicesPage() {
     fetchData()
   }, [slug])
 
-  if (!meta && !staticFallback) {
+  if (!meta) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-20 md:px-8">
         <h1 className="font-serif text-5xl text-burgundy-950">Service not found</h1>
@@ -105,8 +69,8 @@ export function ServicesPage() {
     )
   }
 
-  const eyebrow = meta?.eyebrow ?? staticFallback?.title ?? slug
-  const description = meta?.description ?? staticFallback?.summary ?? ''
+  const eyebrow = meta.label
+  const description = meta.description
 
   return (
     <div className="overflow-hidden">
@@ -124,7 +88,7 @@ export function ServicesPage() {
           {slug === 'event-and-decor' && (
             <ScrollReveal direction="up" delay={150}>
               <div className="mt-8 flex flex-wrap gap-2">
-                {decorSubpages.map((sub) => (
+                {EVENT_DECOR_SUBPAGES.map((sub) => (
                   <Link
                     key={sub.slug}
                     to={`/services/event-and-decor/${sub.slug}`}
@@ -142,10 +106,10 @@ export function ServicesPage() {
       {/* ── Service Items ─────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
         {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse rounded-[2rem] border border-burgundy-100 bg-white p-8">
-                <div className="h-48 w-full rounded-2xl bg-burgundy-50" />
+              <div key={i} className="animate-pulse rounded-xl border border-burgundy-100 bg-white p-2.5 md:rounded-[2rem] md:p-8">
+                <div className="h-28 w-full rounded-lg bg-burgundy-50 sm:h-36 md:h-48 md:rounded-2xl" />
                 <div className="mt-4 h-4 w-24 rounded-full bg-burgundy-100" />
                 <div className="mt-3 h-6 w-48 rounded-full bg-burgundy-100" />
                 <div className="mt-3 h-20 rounded-2xl bg-burgundy-50" />
@@ -153,29 +117,13 @@ export function ServicesPage() {
             ))}
           </div>
         ) : items.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
             {items.map((item, idx) => (
               <ScrollReveal key={item.id} direction="up" delay={(idx % 3) * 100} className="h-full">
-                <ServiceCard item={item} categoryName={eyebrow} hidePricing={slug === 'event-and-decor' || slug === 'photobooth-rental'} />
+                <ServiceCard item={item} categorySlug={slug} categoryName={eyebrow} hidePricing={meta.hidePricing} />
               </ScrollReveal>
             ))}
           </div>
-        ) : staticFallback ? (
-          <ScrollReveal direction="up">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="card-lift rounded-[2rem] border border-burgundy-100 bg-white p-8 shadow-soft">
-                <p className="text-xs uppercase tracking-[0.35em] text-burgundy-500">Pricing model</p>
-                <p className="mt-4 font-serif text-3xl text-burgundy-900">{staticFallback.priceModel}</p>
-                <ul className="mt-6 space-y-3">
-                  {staticFallback.details.map((d) => (
-                    <li key={d} className="rounded-2xl border border-burgundy-100 bg-parchment px-4 py-3 text-sm text-burgundy-700">
-                      {d}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </ScrollReveal>
         ) : (
           <p className="text-sm text-burgundy-600">No services found for this category yet.</p>
         )}
@@ -186,50 +134,49 @@ export function ServicesPage() {
   )
 }
 
-function ServiceCard({ item, categoryName, hidePricing = false }: { item: ServiceRecord, categoryName: string, hidePricing?: boolean }) {
+function ServiceCard({ item, categorySlug, categoryName, hidePricing = false }: { item: ServiceRecord, categorySlug: string, categoryName: string, hidePricing?: boolean }) {
   const price = item.price ?? item.starting_price
   const currency = item.currency ?? 'INR'
-  const isFixed = item.pricing_type === 'fixed' && item.accept_payment && price
+  const numericPrice = Number(price)
+  const hasPrice = Number.isFinite(numericPrice) && numericPrice > 0
+  const isFixed = item.pricing_type === 'fixed' && item.accept_payment && hasPrice
 
   return (
-    <article className="card-lift group flex h-full flex-col overflow-hidden rounded-[2rem] border border-burgundy-100 bg-white p-2 shadow-soft">
-      <div className="aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] bg-burgundy-50">
-        {item.image_url || item.hero_image ? (
-          <img
-            src={item.image_url ?? item.hero_image ?? ''}
-            alt={item.name}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center font-serif text-3xl text-burgundy-200">KM</div>
-        )}
+    <article className="card-lift group flex h-full flex-col overflow-hidden rounded-xl border border-burgundy-100 bg-white p-2 shadow-soft md:rounded-[2rem]">
+      <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-burgundy-50 md:rounded-[1.5rem]">
+        <img
+          src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, categorySlug)}
+          alt={item.name}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          loading="lazy"
+          onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, categorySlug))}
+        />
       </div>
       
-      <div className="flex flex-1 flex-col px-6 py-6 pb-4">
-        <p className="text-xs uppercase tracking-[0.35em] text-burgundy-500">{item.price_model ?? ''}</p>
-        <h3 className="mt-2 font-serif text-2xl text-burgundy-950">{item.name}</h3>
-        <p className="mt-3 flex-1 text-sm leading-7 text-burgundy-700">{item.short_description}</p>
+      <div className="flex flex-1 flex-col px-1 py-2 pb-1 md:px-6 md:py-6 md:pb-4">
+        <p className="text-[9px] uppercase tracking-[0.2em] text-burgundy-500 line-clamp-1 md:text-xs md:tracking-[0.35em]">{item.price_model ?? ''}</p>
+        <h3 className="mt-1 font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:mt-2 md:text-2xl">{item.name}</h3>
+        <p className="mt-1.5 flex-1 text-[11px] leading-5 text-burgundy-700 line-clamp-3 md:mt-3 md:text-sm md:leading-7 md:line-clamp-none">{item.short_description}</p>
 
-        {!hidePricing && price && (
-          <p className="mt-4 font-serif text-2xl text-burgundy-900">
+        {!hidePricing && hasPrice && (
+          <p className="mt-2 font-serif text-sm text-burgundy-900 md:mt-4 md:text-2xl">
             {currency === 'INR' ? '₹' : currency}
-            {Number(price).toLocaleString('en-IN')}
+            {numericPrice.toLocaleString('en-IN')}
           </p>
         )}
 
-        <div className="mt-6">
+        <div className="mt-2 md:mt-6">
           {isFixed ? (
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: categoryName, notes: `I would like to book: ${item.name}` } }))}
-              className="btn-magnetic block w-full rounded-full bg-burgundy-800 px-5 py-3 text-center text-sm text-white transition hover:bg-burgundy-700"
+              className="btn-magnetic block w-full rounded-full bg-burgundy-800 px-3 py-1.5 text-center text-[11px] text-white transition hover:bg-burgundy-700 md:px-5 md:py-3 md:text-sm"
             >
               Book now
             </button>
           ) : (
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: categoryName, notes: `I am interested in: ${item.name}` } }))}
-              className="btn-magnetic block w-full rounded-full border border-burgundy-300 px-5 py-3 text-center text-sm text-burgundy-800 transition hover:border-burgundy-500 hover:bg-burgundy-50"
+              className="btn-magnetic block w-full rounded-full border border-burgundy-300 px-3 py-1.5 text-center text-[11px] text-burgundy-800 transition hover:border-burgundy-500 hover:bg-burgundy-50 md:px-5 md:py-3 md:text-sm"
             >
               Enquire
             </button>

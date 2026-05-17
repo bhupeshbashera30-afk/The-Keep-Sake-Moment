@@ -2,12 +2,10 @@ import { useState, useRef } from 'react'
 import { Plus, Pencil, Trash2, X, Check, Package, Upload, ImageIcon } from 'lucide-react'
 import { useAllProducts, type Product } from '../../hooks/useProducts'
 import { supabase } from '../../lib/supabase'
+import { ADMIN_PRODUCT_CATEGORIES } from '../../lib/siteConfig'
+import { applyImageFallback, imageFallbackSource, productImageSource } from '../../lib/imageFallbacks'
 
-const CATEGORIES = [
-  'hampers', 'flowers', 'crochets', 
-  'photobooth-rental', 'dinner-night',
-  'birthday', 'anniversary', 'proposal', 'corporate', 'special-occasion'
-]
+const CATEGORIES = ADMIN_PRODUCT_CATEGORIES
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 
@@ -264,12 +262,13 @@ export function ProductsPage() {
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={product.image_url || `https://picsum.photos/seed/${product.id}/80/80`}
+                        src={productImageSource(product.image_url, product.id, product.category)}
                         alt={product.name}
                         className="h-12 w-12 rounded-xl object-cover"
                         width={48}
                         height={48}
                         loading="lazy"
+                        onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
                       />
                       <div>
                         <div className="font-medium text-gray-900">{product.name}</div>

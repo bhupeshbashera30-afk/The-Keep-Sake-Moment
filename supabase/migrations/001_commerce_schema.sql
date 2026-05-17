@@ -11,7 +11,19 @@ CREATE TABLE IF NOT EXISTS products (
   price       numeric(10,2) NOT NULL DEFAULT 0,
   image_url   text,
   category    text NOT NULL DEFAULT 'hampers'
-              CHECK (category IN ('hampers','flowers','gift_boxes','celebration','event_addons')),
+              CHECK (category IN (
+                'hampers',
+                'flowers',
+                'crochets',
+                'photobooth-rental',
+                'dinner-night',
+                'event-and-decor',
+                'birthday',
+                'anniversary',
+                'proposal',
+                'corporate',
+                'special-occasion'
+              )),
   stock       integer NOT NULL DEFAULT 999,
   created_at  timestamptz DEFAULT now() NOT NULL
 );
