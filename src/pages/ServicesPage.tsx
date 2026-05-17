@@ -51,14 +51,17 @@ export function ServicesPage() {
   useEffect(() => {
     setLoading(true)
     if (!supabase) { setLoading(false); return }
-    supabase
-      .from('services')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order')
-      .then(({ data }) => {
-        if (data) {
-          const filtered = (data as ServiceRecord[]).filter((s) => {
+
+    async function fetchData() {
+      try {
+        const [servicesRes, productsRes] = await Promise.all([
+          supabase!.from('services').select('*').eq('is_active', true).order('sort_order'),
+          supabase!.from('products').select('*').eq('is_active', true).eq('category', slug)
+        ])
+
+        const baseItems: ServiceRecord[] = []
+        if (servicesRes.data) {
+          const filtered = (servicesRes.data as ServiceRecord[]).filter((s) => {
             if (slug === 'event-and-decor') return s.category_id === 4
             if (slug === 'photobooth-rental') return s.category_id === 1
             if (slug === 'hampers-and-flower') return s.category_id === 2
@@ -67,10 +70,45 @@ export function ServicesPage() {
             if (slug === 'crochets') return s.category_id === 6
             return false
           })
-          setItems(filtered)
+          baseItems.push(...filtered)
         }
+
+        if (productsRes.data) {
+          const mapped = productsRes.data.map(p => ({
+            id: p.id as unknown as number, // Using the string ID temporarily for rendering
+            name: p.name,
+            slug: p.id,
+            category_id: 0,
+            short_description: p.description || '',
+            full_description: p.description || '',
+            hero_image: null,
+            gallery_images: null,
+            starting_price: p.price,
+            price_model: p.price > 0 ? 'Fixed' : 'Custom quote',
+            is_featured: false,
+            sort_order: 99,
+            is_active: true,
+            pricing_type: p.price > 0 ? 'fixed' : 'custom',
+            price: p.price,
+            currency: 'INR',
+            accept_payment: p.price > 0,
+            payment_type: null,
+            advance_amount: null,
+            image_url: p.image_url,
+            created_at: p.created_at
+          } as unknown as ServiceRecord))
+          baseItems.push(...mapped)
+        }
+
+        setItems(baseItems)
+      } catch (e) {
+        console.error(e)
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    fetchData()
   }, [slug])
 
   if (!meta && !staticFallback) {
