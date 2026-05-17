@@ -131,7 +131,7 @@ export function HomePage() {
       {/* ── TASK 1: Full-width Hero (no service sidebar) ────── */}
       <section className="relative overflow-hidden bg-[#faf6f3]">
         {/* Full-width landscape image carousel */}
-        <div className="relative w-full" style={{ height: 'clamp(220px, 45vh, 520px)' }}>
+        <div className="relative w-full h-[clamp(220px,45vh,520px)] md:h-[clamp(380px,65vh,760px)]">
           {heroSlides.map((slide, idx) => (
             <div
               key={idx}
