@@ -146,6 +146,8 @@ export function HomePage() {
             >
               <img
                 src={slide.image}
+                srcSet={`${slide.image.replace('w=1600', 'w=600').replace('q=80', 'q=60')} 600w, ${slide.image} 1600w`}
+                sizes="(max-width: 768px) 600px, 1600px"
                 alt={slide.occasion}
                 className="h-full w-full object-cover"
                 loading={idx === 0 ? 'eager' : 'lazy'}
@@ -223,6 +225,8 @@ export function HomePage() {
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <img
                       src={cat.image}
+                      srcSet={cat.image.includes('unsplash.com') ? `${cat.image.replace('w=600', 'w=300').replace('q=80', 'q=60')} 300w, ${cat.image} 600w` : undefined}
+                      sizes="(max-width: 768px) 300px, 600px"
                       alt={cat.name}
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
                       loading="lazy"

@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 
 const CATEGORIES = [
   'hampers', 'flowers', 'crochets', 
-  'photobooth-rental', 'dinner-night', 'event-and-decor',
+  'photobooth-rental', 'dinner-night',
   'birthday', 'anniversary', 'proposal', 'corporate', 'special-occasion'
 ]
 
