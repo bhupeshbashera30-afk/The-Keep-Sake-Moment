@@ -54,27 +54,10 @@ export function ServicesPage() {
 
     async function fetchData() {
       try {
-        const [servicesRes, productsRes] = await Promise.all([
-          supabase!.from('services').select('*').eq('is_active', true).order('sort_order'),
-          supabase!.from('products').select('*').eq('is_active', true).eq('category', slug)
-        ])
+        const { data } = await supabase!.from('products').select('*').eq('is_active', true).eq('category', slug)
 
-        const baseItems: ServiceRecord[] = []
-        if (servicesRes.data) {
-          const filtered = (servicesRes.data as ServiceRecord[]).filter((s) => {
-            if (slug === 'event-and-decor') return s.category_id === 4
-            if (slug === 'photobooth-rental') return s.category_id === 1
-            if (slug === 'hampers-and-flower') return s.category_id === 2
-            if (slug === 'dinner-night') return s.category_id === 3
-            if (slug === 'ice-cream-rental') return s.category_id === 5
-            if (slug === 'crochets') return s.category_id === 6
-            return false
-          })
-          baseItems.push(...filtered)
-        }
-
-        if (productsRes.data) {
-          const mapped = productsRes.data.map(p => ({
+        if (data) {
+          const mapped = data.map(p => ({
             id: p.id as unknown as number, // Using the string ID temporarily for rendering
             name: p.name,
             slug: p.id,
@@ -97,10 +80,10 @@ export function ServicesPage() {
             image_url: p.image_url,
             created_at: p.created_at
           } as unknown as ServiceRecord))
-          baseItems.push(...mapped)
+          setItems(mapped)
+        } else {
+          setItems([])
         }
-
-        setItems(baseItems)
       } catch (e) {
         console.error(e)
       } finally {
