@@ -29,8 +29,14 @@ const heroSlides = [
 /* ── Category Cards ───────────────────────────────────────── */
 const categories = [
   {
+    name: 'Event & Decor',
+    slug: '/services/event-and-decor',
+    image: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop',
+    color: 'from-emerald-100 to-teal-50',
+  },
+  {
     name: 'Flower Bouquet',
-    slug: '/services/hampers-and-flower',
+    slug: '/shop?category=flowers',
     image: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?q=80&w=600&auto=format&fit=crop',
     color: 'from-rose-100 to-pink-50',
   },

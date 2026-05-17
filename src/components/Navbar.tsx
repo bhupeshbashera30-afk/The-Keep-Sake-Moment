@@ -7,12 +7,13 @@ import { InquiryModal } from './InquiryModal'
 import { marqueeItems } from '../lib/data'
 
 const serviceLinks = [
-  { to: '/services/hampers-and-flower', label: 'Flower & Bouquet' },
+  { to: '/services/event-and-decor', label: 'Event & Decor' },
   { to: '/services/photobooth-rental', label: 'Photobooth Rental' },
   { to: '/services/dinner-night', label: 'Dinner Night' },
 ]
 
 const shopLinks = [
+  { to: '/shop?category=flowers', label: 'Flower & Bouquet' },
   { to: '/shop?category=hampers', label: 'Hamper' },
   { to: '/shop?category=crochets', label: 'Crochet' },
 ]

@@ -9,7 +9,7 @@ const values = [
 
 const milestones = [
   { year: '2021', event: 'Brand founded with a focus on intimate events and gifting.' },
-  { year: '2022', event: 'Expanded styling capabilities and event setups.' },
+  { year: '2022', event: 'Expanded into Event & Decor with full-team styling capability.' },
   { year: '2023', event: 'Photobooth Rental and Dinner Night collections introduced.' },
   { year: '2024', event: 'Signature Luxury package tier launched for milestone occasions.' },
 ]
@@ -46,7 +46,7 @@ export function AboutPage() {
                 From photobooth installations and romantic dinner-night concepts to gifting, florals, and celebratory décor, each project is shaped as a complete visual mood rather than a simple order request.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
-                {['Photobooth Rental', 'Dinner Night', 'Hampers & Flowers'].map((s) => (
+                {['Photobooth Rental', 'Dinner Night', 'Hampers & Flowers', 'Event & Decor'].map((s) => (
                   <span key={s} className="rounded-full border border-burgundy-100 bg-burgundy-50 px-3 py-1 text-xs text-burgundy-600">{s}</span>
                 ))}
               </div>
