@@ -7,7 +7,7 @@ import { AboutPage } from './pages/AboutPage'
 import { ContactPage } from './pages/ContactPage'
 import { ServicesPage } from './pages/ServicesPage'
 import { EventDecorSubPage } from './pages/EventDecorSubPage'
-import { PackagesPage } from './pages/PackagesPage'
+
 import { ShopPage } from './pages/ShopPage'
 import { CheckoutPage } from './pages/CheckoutPage'
 import { OrderSuccessPage } from './pages/OrderSuccessPage'
@@ -32,7 +32,7 @@ export default function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/services/event-and-decor/:subslug" element={<EventDecorSubPage />} />
             <Route path="/services/:slug" element={<ServicesPage />} />
-            <Route path="/packages" element={<PackagesPage />} />
+
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />

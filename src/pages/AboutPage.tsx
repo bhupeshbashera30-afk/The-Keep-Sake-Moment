@@ -9,7 +9,7 @@ const values = [
 
 const milestones = [
   { year: '2021', event: 'Brand founded with a focus on intimate events and gifting.' },
-  { year: '2022', event: 'Expanded into Event & Decor with full-team styling capability.' },
+  { year: '2022', event: 'Expanded styling capabilities and event setups.' },
   { year: '2023', event: 'Photobooth Rental and Dinner Night collections introduced.' },
   { year: '2024', event: 'Signature Luxury package tier launched for milestone occasions.' },
 ]
@@ -46,7 +46,7 @@ export function AboutPage() {
                 From photobooth installations and romantic dinner-night concepts to gifting, florals, and celebratory décor, each project is shaped as a complete visual mood rather than a simple order request.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
-                {['Photobooth Rental', 'Dinner Night', 'Hampers & Flowers', 'Event & Decor'].map((s) => (
+                {['Photobooth Rental', 'Dinner Night', 'Hampers & Flowers'].map((s) => (
                   <span key={s} className="rounded-full border border-burgundy-100 bg-burgundy-50 px-3 py-1 text-xs text-burgundy-600">{s}</span>
                 ))}
               </div>
@@ -56,10 +56,10 @@ export function AboutPage() {
               <p className="text-[10px] uppercase tracking-[0.35em] text-burgundy-400">How it works</p>
               <h3 className="mt-3 font-serif text-3xl text-burgundy-950">Consultative, not transactional.</h3>
               <p className="mt-4 text-sm leading-7 text-burgundy-700">
-                Clients explore the available services and packages, submit a concise enquiry, and the team follows up directly to align on pricing, styling direction, logistics, and event requirements.
+                Clients explore the available services, submit a concise enquiry, and the team follows up directly to align on pricing, styling direction, logistics, and event requirements.
               </p>
               <div className="mt-6 grid grid-cols-2 gap-3">
-                {[['01 Explore', 'Browse services & packages'], ['02 Enquire', 'Submit the essentials'], ['03 Consult', 'Team aligns with you'], ['04 Execute', 'Flawless delivery']].map(([step, desc]) => (
+                {[['01 Explore', 'Browse services'], ['02 Enquire', 'Submit the essentials'], ['03 Consult', 'Team aligns with you'], ['04 Execute', 'Flawless delivery']].map(([step, desc]) => (
                   <div key={step} className="rounded-xl bg-burgundy-50/60 p-3">
                     <p className="font-serif text-sm text-burgundy-800">{step}</p>
                     <p className="mt-0.5 text-xs text-burgundy-500">{desc}</p>

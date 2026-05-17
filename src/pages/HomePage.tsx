@@ -24,11 +24,6 @@ const heroSlides = [
     occasion: 'Dinner Nights',
     tagline: 'Intimate moments, curated',
   },
-  {
-    image: 'https://images.unsplash.com/photo-1478146059778-26028b07395a?q=80&w=1600&auto=format&fit=crop',
-    occasion: 'Event & Decor',
-    tagline: 'Every detail, designed',
-  },
 ]
 
 /* ── Category Cards ───────────────────────────────────────── */
@@ -37,26 +32,31 @@ const categories = [
     name: 'Flower Bouquet',
     slug: '/services/hampers-and-flower',
     image: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?q=80&w=600&auto=format&fit=crop',
+    color: 'from-rose-100 to-pink-50',
   },
   {
     name: 'Hampers',
     slug: '/services/hampers-and-flower',
     image: '/images/hampers-category.png',
+    color: 'from-amber-100 to-orange-50',
+  },
+  {
+    name: 'Crochet',
+    slug: '/shop?category=crochets',
+    image: '/images/crochets-category.png',
+    color: 'from-pink-100 to-rose-50',
   },
   {
     name: 'Photobooth Rental',
     slug: '/services/photobooth-rental',
     image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=600&auto=format&fit=crop',
+    color: 'from-purple-100 to-violet-50',
   },
   {
-    name: 'Event & Decor',
-    slug: '/services/event-and-decor',
-    image: 'https://images.unsplash.com/photo-1478146059778-26028b07395a?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'Dinner Date',
+    name: 'Dinner Night',
     slug: '/services/dinner-night',
     image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=600&auto=format&fit=crop',
+    color: 'from-burgundy-100 to-rose-50',
   },
 ]
 
@@ -88,44 +88,7 @@ const testimonials = [
   },
 ]
 
-/* ── Stats ────────────────────────────────────────────────── */
-const stats = [
-  { icon: Star, value: 150, suffix: '+', label: 'Premium clients' },
-  { icon: Clock, value: 4, suffix: ' yrs', label: 'Crafting moments' },
-  { icon: Award, value: 98, suffix: '%', label: 'Client satisfaction' },
-]
-
-function CountUp({ target, suffix }: { target: number; suffix: string }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const started = useRef(false)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !started.current) {
-        started.current = true
-        let start = 0
-        const duration = 1800
-        const step = (timestamp: number) => {
-          if (!start) start = timestamp
-          const pct = Math.min((timestamp - start) / duration, 1)
-          const ease = 1 - Math.pow(1 - pct, 3)
-          setCount(Math.floor(ease * target))
-          if (pct < 1) requestAnimationFrame(step)
-          else setCount(target)
-        }
-        requestAnimationFrame(step)
-        observer.disconnect()
-      }
-    }, { threshold: 0.5 })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [target])
-
-  return <span ref={ref} className="count-stat">{count}{suffix}</span>
-}
+/* ── Stats — REMOVED ── */
 
 export function HomePage() {
   /* ── Hero slideshow state ────────────────────────────────── */
@@ -167,8 +130,8 @@ export function HomePage() {
     <div>
       {/* ── TASK 1: Full-width Hero (no service sidebar) ────── */}
       <section className="relative overflow-hidden bg-[#faf6f3]">
-        {/* Full-width image carousel */}
-        <div className="relative w-full" style={{ height: 'clamp(380px, 65vh, 760px)' }}>
+        {/* Full-width landscape image carousel */}
+        <div className="relative w-full" style={{ height: 'clamp(220px, 45vh, 520px)' }}>
           {heroSlides.map((slide, idx) => (
             <div
               key={idx}
@@ -195,19 +158,13 @@ export function HomePage() {
               <h1 className="mt-2 font-serif text-4xl text-white md:text-6xl lg:text-7xl">
                 {heroSlides[currentSlide].tagline}
               </h1>
-              <div className="mt-6 flex flex-wrap items-center gap-4">
+              <div className="mt-5 flex flex-wrap items-center gap-4">
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry'))}
                   className="btn-magnetic rounded-full bg-white px-6 py-3 text-sm font-medium text-burgundy-900 hover:bg-burgundy-50"
                 >
                   Start your enquiry
                 </button>
-                <Link
-                  to="/packages"
-                  className="btn-magnetic rounded-full border border-white/40 px-6 py-3 text-sm text-white hover:border-white hover:bg-white/10"
-                >
-                  Explore packages
-                </Link>
               </div>
             </div>
 
@@ -252,24 +209,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Stats ───────────────────────────────────────────── */}
-      <section className="border-b border-burgundy-100 bg-white">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="grid grid-cols-3 divide-x divide-burgundy-100">
-            {stats.map((s, idx) => (
-              <ScrollReveal key={s.label} direction="up" delay={idx * 100} className="h-full">
-                <div className="flex h-full flex-col items-center py-10 px-4 text-center">
-                  <s.icon className="h-5 w-5 text-gold mb-4" />
-                  <p className="font-serif text-4xl text-burgundy-950 md:text-5xl">
-                    <CountUp target={s.value} suffix={s.suffix} />
-                  </p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.25em] text-burgundy-500">{s.label}</p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Stats section REMOVED */}
 
       {/* ── TASK 4: Categories Grid (2-3 cols on mobile) ─────── */}
       <section className="bg-[#faf6f3] py-20">
@@ -281,13 +221,13 @@ export function HomePage() {
             </div>
           </ScrollReveal>
 
-          {/* 2-col on mobile, 3-col on sm, 4 on xl */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {/* 2-col on mobile, original desktop layout */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-5">
             {categories.map((cat, idx) => (
               <ScrollReveal key={cat.name} direction="up" delay={(idx % 4) * 80} className="h-full">
                 <Link
                   to={cat.slug}
-                  className="card-lift group relative flex h-full flex-col overflow-hidden rounded-[1.2rem] border border-burgundy-100 bg-white shadow-soft"
+                  className="card-lift group relative flex h-full flex-col overflow-hidden rounded-[1.2rem] border border-burgundy-100 bg-white shadow-soft md:rounded-[1.5rem]"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <img
@@ -298,9 +238,9 @@ export function HomePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
                   </div>
-                  <div className="flex flex-1 items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
-                    <h3 className="font-serif text-sm sm:text-base text-burgundy-950 leading-tight">{cat.name}</h3>
-                    <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-burgundy-50 text-burgundy-600 text-xs transition group-hover:bg-burgundy-800 group-hover:text-white">
+                  <div className="flex flex-1 items-center justify-between px-3 py-2.5 sm:px-5 sm:py-4">
+                    <h3 className="font-serif text-sm text-burgundy-950 leading-tight sm:text-xl">{cat.name}</h3>
+                    <span className="flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-burgundy-50 text-burgundy-600 text-xs transition group-hover:bg-burgundy-800 group-hover:text-white">
                       →
                     </span>
                   </div>
@@ -385,8 +325,8 @@ export function HomePage() {
               </div>
             </ScrollReveal>
           ) : (
-            // 2-col on mobile, 3 on sm, 4 on md, 6 on lg
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            // 2-col on mobile, original desktop layout
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-6">
               {quickGrabs.map((product, idx) => (
                 <ScrollReveal key={product.id} direction="up" delay={(idx % 6) * 60} className="h-full">
                   <article className="card-lift group flex h-full flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft sm:rounded-2xl sm:p-3">
@@ -394,21 +334,21 @@ export function HomePage() {
                       <img
                         src={product.image_url || `https://picsum.photos/seed/${product.id}/400/300`}
                         alt={product.name}
-                        className="h-28 w-full object-cover transition duration-500 group-hover:scale-105"
+                        className="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
                         loading="lazy"
                       />
-                      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur">
+                      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur sm:left-2 sm:top-2 sm:px-2 sm:text-[10px]">
                         {product.category.replace('_', ' ')}
                       </span>
                     </div>
-                    <div className="flex flex-1 flex-col px-0.5 pt-2 pb-0.5">
-                      <h3 className="font-serif text-xs text-burgundy-950 leading-snug line-clamp-2 sm:text-sm">{product.name}</h3>
-                      <p className="mt-1 font-serif text-sm text-burgundy-800 sm:text-base">
+                    <div className="flex flex-1 flex-col px-0.5 pt-2 pb-0.5 sm:px-1 sm:pt-3 sm:pb-1">
+                      <h3 className="font-serif text-xs text-burgundy-950 leading-snug line-clamp-2 sm:text-base">{product.name}</h3>
+                      <p className="mt-1 font-serif text-sm text-burgundy-800 sm:text-lg">
                         ₹{product.price.toLocaleString('en-IN')}
                       </p>
                       <button
                         onClick={() => handleAdd(product)}
-                        className={`mt-2 rounded-full px-3 py-1.5 text-[11px] font-medium transition sm:px-4 sm:py-2 sm:text-xs ${
+                        className={`mt-2 rounded-full px-3 py-1.5 text-[11px] font-medium transition sm:mt-3 sm:px-4 sm:py-2 sm:text-xs ${
                           addedId === product.id
                             ? 'bg-green-600 text-white'
                             : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
