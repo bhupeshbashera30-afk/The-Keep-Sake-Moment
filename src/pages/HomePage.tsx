@@ -48,6 +48,14 @@ export function HomePage() {
     setTimeout(() => setAddedId(null), 1500)
   }
 
+  /* ── Quick Grabs carousel (mobile) ───────────────────────── */
+  const quickGrabsScrollRef = useRef<HTMLDivElement>(null)
+  const scrollQuickGrabs = (dir: 'left' | 'right') => {
+    const el = quickGrabsScrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir === 'right' ? 200 : -200, behavior: 'smooth' })
+  }
+
   return (
     <div>
       {/* ── TASK 1: Full-width Hero (no service sidebar) ────── */}
@@ -236,43 +244,98 @@ export function HomePage() {
               </div>
             </ScrollReveal>
           ) : (
-            // 2-col on mobile, original desktop layout
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-6">
-              {quickGrabs.map((product, idx) => (
-                <ScrollReveal key={product.id} direction="up" delay={(idx % 6) * 60} className="h-full">
-                  <article className="card-lift group flex h-full flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft sm:rounded-2xl sm:p-3">
-                    <div className="relative overflow-hidden rounded-lg sm:rounded-xl">
-                      <img
-                        src={productImageSource(product.image_url, product.id, product.category)}
-                        alt={product.name}
-                        className="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
-                        loading="lazy"
-                        onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
-                      />
-                      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur sm:left-2 sm:top-2 sm:px-2 sm:text-[10px]">
-                        {product.category.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col px-0.5 pt-2 pb-0.5 sm:px-1 sm:pt-3 sm:pb-1">
-                      <h3 className="font-serif text-xs text-burgundy-950 leading-snug line-clamp-2 sm:text-base">{product.name}</h3>
-                      <p className="mt-1 font-serif text-sm text-burgundy-800 sm:text-lg">
-                        ₹{product.price.toLocaleString('en-IN')}
-                      </p>
-                      <button
-                        onClick={() => handleAdd(product)}
-                        className={`mt-2 rounded-full px-3 py-1.5 text-[11px] font-medium transition sm:mt-3 sm:px-4 sm:py-2 sm:text-xs ${
-                          addedId === product.id
-                            ? 'bg-green-600 text-white'
-                            : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
-                        }`}
-                      >
-                        {addedId === product.id ? '✓ Added' : 'Add to Cart'}
-                      </button>
-                    </div>
-                  </article>
-                </ScrollReveal>
-              ))}
-            </div>
+            /* Mobile: horizontal scroll carousel with nav arrows | Desktop: grid */
+            <>
+              {/* Mobile horizontal scroll with prev/next arrows */}
+              <div className="relative md:hidden">
+                {/* Prev arrow */}
+                <button
+                  onClick={() => scrollQuickGrabs('left')}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md border border-burgundy-100 text-burgundy-700 backdrop-blur -ml-2"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                <div
+                  ref={quickGrabsScrollRef}
+                  className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory px-6"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {quickGrabs.map((product) => (
+                    <article key={product.id} className="card-lift group flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft snap-start flex-shrink-0 w-40">
+                      <div className="relative overflow-hidden rounded-lg">
+                        <img
+                          src={productImageSource(product.image_url, product.id, product.category)}
+                          alt={product.name}
+                          className="h-28 w-full object-cover transition duration-500 group-hover:scale-105"
+                          loading="lazy"
+                          onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
+                        />
+                        <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur">
+                          {product.category.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="flex flex-1 flex-col px-0.5 pt-2 pb-0.5">
+                        <h3 className="font-serif text-xs text-burgundy-950 leading-snug line-clamp-2">{product.name}</h3>
+                        <p className="mt-1 font-serif text-sm text-burgundy-800">₹{product.price.toLocaleString('en-IN')}</p>
+                        <button
+                          onClick={() => handleAdd(product)}
+                          className={`mt-2 rounded-full px-3 py-1.5 text-[11px] font-medium transition ${
+                            addedId === product.id ? 'bg-green-600 text-white' : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                          }`}
+                        >
+                          {addedId === product.id ? '✓ Added' : 'Add to Cart'}
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                {/* Next arrow */}
+                <button
+                  onClick={() => scrollQuickGrabs('right')}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md border border-burgundy-100 text-burgundy-700 backdrop-blur -mr-2"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Desktop grid */}
+              <div className="hidden md:grid gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                {quickGrabs.map((product, idx) => (
+                  <ScrollReveal key={product.id} direction="up" delay={(idx % 6) * 60} className="h-full">
+                    <article className="card-lift group flex h-full flex-col rounded-2xl border border-burgundy-100 bg-white p-3 shadow-soft">
+                      <div className="relative overflow-hidden rounded-xl">
+                        <img
+                          src={productImageSource(product.image_url, product.id, product.category)}
+                          alt={product.name}
+                          className="h-36 w-full object-cover transition duration-500 group-hover:scale-105"
+                          loading="lazy"
+                          onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
+                        />
+                        <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium text-burgundy-700 backdrop-blur">
+                          {product.category.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="flex flex-1 flex-col px-1 pt-3 pb-1">
+                        <h3 className="font-serif text-base text-burgundy-950 leading-snug line-clamp-2">{product.name}</h3>
+                        <p className="mt-1 font-serif text-lg text-burgundy-800">₹{product.price.toLocaleString('en-IN')}</p>
+                        <button
+                          onClick={() => handleAdd(product)}
+                          className={`mt-3 rounded-full px-4 py-2 text-xs font-medium transition ${
+                            addedId === product.id ? 'bg-green-600 text-white' : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                          }`}
+                        >
+                          {addedId === product.id ? '✓ Added' : 'Add to Cart'}
+                        </button>
+                      </div>
+                    </article>
+                  </ScrollReveal>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>

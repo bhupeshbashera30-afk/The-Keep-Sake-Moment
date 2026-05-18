@@ -11,7 +11,7 @@ export function Footer() {
     <footer className="border-t border-burgundy-100 bg-white">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3 md:px-8">
         <div><p className="font-serif text-2xl text-burgundy-900">Keepsake Moments</p><p className="mt-3 max-w-sm text-sm leading-7 text-burgundy-600">Premium event styling, curated gifting, intimate dinner experiences, and memorable celebration design.</p></div>
-        <div><p className="text-xs uppercase tracking-[0.3em] text-burgundy-500">Navigate</p><div className="mt-4 flex flex-col gap-2 text-sm text-burgundy-700"><Link to="/about">About</Link><Link to="/shop">Shop</Link><Link to="/contact">Contact</Link></div></div>
+        <div><p className="text-xs uppercase tracking-[0.3em] text-burgundy-500">Navigate</p><div className="mt-4 flex flex-col gap-2 text-sm text-burgundy-700"><Link to="/about">About</Link><Link to="/shop">Shop</Link><Link to="/contact">Contact</Link><a href="https://www.instagram.com/thekeepsakemoment?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-burgundy-900 transition-colors">Instagram ↗</a></div></div>
         <div><p className="text-xs uppercase tracking-[0.3em] text-burgundy-500">Services</p><div className="mt-4 flex flex-col gap-2 text-sm text-burgundy-700">{footerLinks.map((link) => <Link key={link.to} to={link.to}>{link.label}</Link>)}</div></div>
       </div>
     </footer>

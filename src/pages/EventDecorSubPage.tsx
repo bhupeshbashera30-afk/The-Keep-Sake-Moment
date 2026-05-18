@@ -1,29 +1,52 @@
 import { useParams, Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react' 
 import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource } from '../lib/imageFallbacks'
 import { EVENT_DECOR_SUBPAGES, eventDecorSubpageBySlug } from '../lib/siteConfig'
+import { useCart } from '../context/CartContext'
+
+const ALL_SLUG = 'all'
 
 export function EventDecorSubPage() {
   const { subslug = 'birthday' } = useParams()
-  const meta = eventDecorSubpageBySlug(subslug)
+  const rawMeta = eventDecorSubpageBySlug(subslug)
+  const meta = rawMeta ?? (subslug === ALL_SLUG ? {
+    slug: 'all',
+    label: 'All',
+    title: 'Event & Decor',
+    description: 'Celebration styling for every occasion — birthdays, anniversaries, proposals, corporate events, and special gatherings.',
+    tags: [],
+  } : null)
+  const { addItem } = useCart()
+  const [addedId, setAddedId] = useState<string | null>(null)
 
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  const handleAdd = (item: any) => {
+    addItem({ id: item.id, name: item.name, price: item.price, image_url: item.image_url ?? undefined, category: item.category })
+    setAddedId(item.id)
+    setTimeout(() => setAddedId(null), 1500)
+  }
+
   useEffect(() => {
     setLoading(true)
     if (!supabase) { setLoading(false); return }
-    supabase
+    const allSlugs = EVENT_DECOR_SUBPAGES.map((s) => s.slug)
+    const query = supabase
       .from('products')
       .select('*')
       .eq('is_active', true)
-      .eq('category', subslug)
-      .then(({ data }) => {
-        setItems(data || [])
-        setLoading(false)
-      })
+    if (subslug !== ALL_SLUG) {
+      query.eq('category', subslug)
+    } else {
+      query.in('category', allSlugs)
+    }
+    query.then(({ data }) => {
+      setItems(data || [])
+      setLoading(false)
+    })
   }, [subslug])
 
   if (!meta) {
@@ -67,9 +90,20 @@ export function EventDecorSubPage() {
             )}
           </ScrollReveal>
 
-          {/* Subpage tabs */}
+          {/* Subpage tabs — now includes "All" */}
           <ScrollReveal direction="up" delay={150}>
             <div className="mt-8 flex flex-wrap gap-2">
+              {/* All tab */}
+              <Link
+                to="/services/event-and-decor/all"
+                className={`rounded-full border px-4 py-2 text-sm transition ${
+                  subslug === ALL_SLUG
+                    ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.28)]'
+                    : 'border-burgundy-200 bg-white text-burgundy-700 hover:border-burgundy-500 hover:text-burgundy-900'
+                }`}
+              >
+                All
+              </Link>
               {EVENT_DECOR_SUBPAGES.map((sub) => (
                 <Link
                   key={sub.slug}
@@ -106,21 +140,35 @@ export function EventDecorSubPage() {
             <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
               {items.map((item) => (
                 <article key={item.id} className="card-lift flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-[2rem] md:p-8">
-                  <img
-                    src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
-                    alt={item.name}
-                    className="mb-3 h-28 w-full rounded-lg object-cover sm:h-36 md:mb-6 md:h-48 md:rounded-2xl"
-                    loading="lazy"
-                    onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, subslug))}
-                  />
-                  <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-2xl">{item.name}</h3>
-                  <p className="mt-1.5 flex-1 text-[11px] leading-5 text-burgundy-700 line-clamp-3 md:mt-3 md:text-sm md:leading-7 md:line-clamp-none">{item.description}</p>
-                  <button
-                    onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I am interested in ${item.name} for my ${meta.title} event.` } }))}
-                    className="btn-magnetic mt-3 block w-full rounded-full border border-burgundy-300 px-3 py-1.5 text-center text-[11px] text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white md:mt-6 md:px-5 md:py-3 md:text-sm"
-                  >
-                    Enquire
-                  </button>
+                  <div className="relative mb-3 overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
+                    <img
+                      src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
+                      alt={item.name}
+                      className="h-28 w-full object-cover sm:h-36 md:h-52"
+                      loading="lazy"
+                      onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, subslug))}
+                    />
+                    <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur md:left-3 md:top-3 md:px-3 md:py-1 md:text-xs">
+                      {item.category?.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{item.name}</h3>
+                  <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed">{item.description}</p>
+                  <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-between md:gap-3">
+                    <span className="font-serif text-sm text-burgundy-900 md:text-2xl">
+                      ₹{item.price?.toLocaleString('en-IN')}
+                    </span>
+                    <button
+                      onClick={() => handleAdd(item)}
+                      className={`rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm ${
+                        addedId === item.id
+                          ? 'bg-green-600 text-white'
+                          : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                      }`}
+                    >
+                      {addedId === item.id ? '✓ Added' : 'Add to Cart'}
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
