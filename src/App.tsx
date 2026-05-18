@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { CartProvider } from './context/CartContext'
 import { AdminAuthProvider } from './context/AdminAuthContext'
@@ -31,6 +31,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/services/event-and-decor" element={<Navigate to="/services/event-and-decor/all" replace />} />
             <Route path="/services/event-and-decor/:subslug" element={<EventDecorSubPage />} />
             <Route path="/services/:slug" element={<ServicesPage />} />
 

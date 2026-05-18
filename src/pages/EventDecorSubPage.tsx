@@ -70,7 +70,7 @@ export function EventDecorSubPage() {
           <ScrollReveal direction="up">
             {/* Breadcrumb */}
             <div className="flex flex-wrap items-center gap-2 text-sm text-burgundy-500">
-              <Link to="/services/event-and-decor" className="underline-draw hover:text-burgundy-900">Event & Decor</Link>
+              <Link to="/services/event-and-decor/all" className="underline-draw hover:text-burgundy-900">Event & Decor</Link>
               <span className="text-burgundy-300">›</span>
               <span className="text-burgundy-900 font-medium">{meta.title}</span>
             </div>
