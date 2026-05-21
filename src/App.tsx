@@ -10,6 +10,7 @@ import { EventDecorSubPage } from './pages/EventDecorSubPage'
 
 
 import { ShopPage } from './pages/ShopPage'
+import { ProductDetailPage } from './pages/ProductDetailPage'
 import { CheckoutPage } from './pages/CheckoutPage'
 import { OrderSuccessPage } from './pages/OrderSuccessPage'
 import { AdminLoginPage } from './pages/AdminLoginPage'
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/services/:slug" element={<ServicesPage />} />
 
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
           </Route>

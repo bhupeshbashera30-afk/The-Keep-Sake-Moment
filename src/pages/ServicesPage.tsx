@@ -4,6 +4,8 @@ import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase, type ServiceRecord } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource } from '../lib/imageFallbacks'
 import { EVENT_DECOR_SUBPAGES, serviceCategoryBySlug } from '../lib/siteConfig'
+import { useCart } from '../context/CartContext'
+import { useNavigate } from 'react-router-dom'
 
 export function ServicesPage() {
   const { slug = 'photobooth-rental' } = useParams()
@@ -140,22 +142,39 @@ function ServiceCard({ item, categorySlug, categoryName, hidePricing = false }: 
   const numericPrice = Number(price)
   const hasPrice = Number.isFinite(numericPrice) && numericPrice > 0
   const isFixed = item.pricing_type === 'fixed' && item.accept_payment && hasPrice
+  
+  const { addItem } = useCart()
+  const navigate = useNavigate()
+  const [added, setAdded] = useState(false)
+
+  const handleAdd = () => {
+    addItem({ id: String(item.id), name: item.name, price: numericPrice, image_url: item.image_url ?? undefined, category: categorySlug })
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1500)
+  }
+
+  const handleBuyNow = () => {
+    addItem({ id: String(item.id), name: item.name, price: numericPrice, image_url: item.image_url ?? undefined, category: categorySlug })
+    navigate('/checkout')
+  }
 
   return (
     <article className="card-lift group flex h-full flex-col overflow-hidden rounded-xl border border-burgundy-100 bg-white p-2 shadow-soft md:rounded-[2rem]">
-      <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-burgundy-50 md:rounded-[1.5rem]">
+      <Link to={`/product/${item.id}`} className="aspect-[4/3] w-full block overflow-hidden rounded-lg bg-burgundy-50 md:rounded-[1.5rem]">
         <img
-          src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, categorySlug)}
+          src={item.image_url ?? item.hero_image ?? imageFallbackSource(String(item.id), categorySlug)}
           alt={item.name}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           loading="lazy"
-          onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, categorySlug))}
+          onError={(event) => applyImageFallback(event, imageFallbackSource(String(item.id), categorySlug))}
         />
-      </div>
+      </Link>
       
       <div className="flex flex-1 flex-col px-1 py-2 pb-1 md:px-6 md:py-6 md:pb-4">
         <p className="text-[9px] uppercase tracking-[0.2em] text-burgundy-500 line-clamp-1 md:text-xs md:tracking-[0.35em]">{item.price_model ?? ''}</p>
-        <h3 className="mt-1 font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:mt-2 md:text-2xl">{item.name}</h3>
+        <Link to={`/product/${item.id}`} className="group-hover:opacity-80">
+          <h3 className="mt-1 font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:mt-2 md:text-2xl">{item.name}</h3>
+        </Link>
         <p className="mt-1.5 flex-1 text-[11px] leading-5 text-burgundy-700 line-clamp-3 md:mt-3 md:text-sm md:leading-7 md:line-clamp-none">{item.short_description}</p>
 
         {!hidePricing && hasPrice && (
@@ -166,7 +185,26 @@ function ServiceCard({ item, categorySlug, categoryName, hidePricing = false }: 
         )}
 
         <div className="mt-2 md:mt-6">
-          {isFixed ? (
+          {categorySlug === 'dinner-night' && hasPrice ? (
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={handleAdd}
+                className={`flex-1 rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm ${
+                  added
+                    ? 'bg-green-600 text-white'
+                    : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                }`}
+              >
+                {added ? '✓ Added' : 'Add to Cart'}
+              </button>
+              <button
+                onClick={handleBuyNow}
+                className="flex-1 rounded-full border border-burgundy-800 bg-white px-3 py-1.5 text-[11px] font-medium text-burgundy-800 transition hover:bg-burgundy-50 md:px-5 md:py-2.5 md:text-sm"
+              >
+                Pay Now
+              </button>
+            </div>
+          ) : isFixed ? (
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: categoryName, notes: `I would like to book: ${item.name}` } }))}
               className="btn-magnetic block w-full rounded-full bg-burgundy-800 px-3 py-1.5 text-center text-[11px] text-white transition hover:bg-burgundy-700 md:px-5 md:py-3 md:text-sm"

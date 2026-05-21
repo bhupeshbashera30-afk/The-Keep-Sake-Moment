@@ -17,6 +17,7 @@ type FormState = {
   category: string
   stock: string
   is_active: boolean
+  gallery_images: string[]
 }
 
 const EMPTY_FORM: FormState = {
@@ -27,6 +28,7 @@ const EMPTY_FORM: FormState = {
   category: 'hampers',
   stock: '0',
   is_active: true,
+  gallery_images: [],
 }
 
 export function ProductsPage() {
@@ -40,10 +42,16 @@ export function ProductsPage() {
   const [filterCat, setFilterCat] = useState('all')
 
   // Image upload state
+  // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Gallery upload state
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([])
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([])
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   const filtered = filterCat === 'all' ? products : products.filter(p => p.category === filterCat)
 
@@ -53,6 +61,8 @@ export function ProductsPage() {
     setError(null)
     setImageFile(null)
     setImagePreview(null)
+    setGalleryFiles([])
+    setGalleryPreviews([])
     setShowModal(true)
   }
 
@@ -65,11 +75,14 @@ export function ProductsPage() {
       category: p.category,
       stock: String(p.stock),
       is_active: (p as any).is_active ?? true,
+      gallery_images: (p as any).gallery_images ?? [],
     })
     setEditingId(p.id)
     setError(null)
     setImageFile(null)
     setImagePreview(p.image_url || null)
+    setGalleryFiles([])
+    setGalleryPreviews((p as any).gallery_images ?? [])
     setShowModal(true)
   }
 
@@ -113,6 +126,41 @@ export function ProductsPage() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  function handleGallerySelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    const validFiles = files.filter(f => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024)
+    if (validFiles.length < files.length) {
+      setError('Some files were ignored. Ensure they are images and under 5 MB.')
+    }
+
+    setGalleryFiles(prev => [...prev, ...validFiles])
+    
+    validFiles.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (ev) => setGalleryPreviews(prev => [...prev, ev.target?.result as string])
+      reader.readAsDataURL(file)
+    })
+  }
+
+  function removeGalleryImage(index: number) {
+    // If it's a pre-existing URL (not in galleryFiles yet)
+    if (index < form.gallery_images.length) {
+      setForm(prev => ({
+        ...prev,
+        gallery_images: prev.gallery_images.filter((_, i) => i !== index)
+      }))
+    } else {
+      // It's a newly added file
+      const fileIndex = index - form.gallery_images.length
+      setGalleryFiles(prev => prev.filter((_, i) => i !== fileIndex))
+    }
+    
+    // Always remove from previews
+    setGalleryPreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
   async function uploadImage(file: File): Promise<string | null> {
     if (!supabase) return null
     setUploading(true)
@@ -153,11 +201,20 @@ export function ProductsPage() {
         finalImageUrl = await uploadImage(imageFile)
       }
 
+      // Upload gallery images
+      const newGalleryUrls: string[] = []
+      for (const file of galleryFiles) {
+        const url = await uploadImage(file)
+        if (url) newGalleryUrls.push(url)
+      }
+      const finalGalleryImages = [...form.gallery_images, ...newGalleryUrls]
+
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
         price: parseFloat(form.price) || 0,
         image_url: finalImageUrl,
+        gallery_images: finalGalleryImages,
         category: form.category,
         stock: parseInt(form.stock) || 0,
         is_active: form.is_active,
@@ -173,6 +230,8 @@ export function ProductsPage() {
         setShowModal(false)
         setImageFile(null)
         setImagePreview(null)
+        setGalleryFiles([])
+        setGalleryPreviews([])
         await refetch()
       }
     } catch (err: any) {
@@ -463,6 +522,46 @@ export function ProductsPage() {
                     Change image
                   </button>
                 )}
+              </div>
+
+              {/* Gallery Upload */}
+              <div>
+                <label className="mb-2 block text-xs font-medium text-gray-600">Gallery Images (Multiple)</label>
+                
+                <div className="grid grid-cols-4 gap-3 mb-3">
+                  {galleryPreviews.map((preview, idx) => (
+                    <div key={idx} className="relative rounded-xl overflow-hidden border border-gray-200 aspect-square">
+                      <img src={preview} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition flex items-center justify-center opacity-0 hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(idx)}
+                          className="rounded-full bg-white/90 p-1.5 text-red-600 shadow-lg transition hover:bg-white"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 aspect-square text-gray-400 transition hover:border-burgundy-300 hover:text-burgundy-600"
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">Add Photo</span>
+                  </button>
+                </div>
+
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  multiple
+                  onChange={handleGallerySelect}
+                  className="hidden"
+                />
               </div>
 
               <div className="flex items-center gap-2">

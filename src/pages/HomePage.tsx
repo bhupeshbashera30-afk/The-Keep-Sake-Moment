@@ -264,7 +264,7 @@ export function HomePage() {
                 >
                   {quickGrabs.map((product) => (
                     <article key={product.id} className="card-lift group flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft snap-start flex-shrink-0 w-40">
-                      <div className="relative overflow-hidden rounded-lg">
+                      <Link to={`/product/${product.id}`} className="relative block overflow-hidden rounded-lg">
                         <img
                           src={productImageSource(product.image_url, product.id, product.category)}
                           alt={product.name}
@@ -275,9 +275,11 @@ export function HomePage() {
                         <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur">
                           {product.category.replace('_', ' ')}
                         </span>
-                      </div>
+                      </Link>
                       <div className="flex flex-1 flex-col px-0.5 pt-2 pb-0.5">
-                        <h3 className="font-serif text-xs text-burgundy-950 leading-snug line-clamp-2">{product.name}</h3>
+                        <Link to={`/product/${product.id}`} className="group-hover:opacity-80">
+                          <h3 className="font-serif text-xs text-burgundy-950 leading-snug line-clamp-2">{product.name}</h3>
+                        </Link>
                         <p className="mt-1 font-serif text-sm text-burgundy-800">₹{product.price.toLocaleString('en-IN')}</p>
                         <button
                           onClick={() => handleAdd(product)}
@@ -307,7 +309,7 @@ export function HomePage() {
                 {quickGrabs.map((product, idx) => (
                   <ScrollReveal key={product.id} direction="up" delay={(idx % 6) * 60} className="h-full">
                     <article className="card-lift group flex h-full flex-col rounded-2xl border border-burgundy-100 bg-white p-3 shadow-soft">
-                      <div className="relative overflow-hidden rounded-xl">
+                      <Link to={`/product/${product.id}`} className="relative block overflow-hidden rounded-xl">
                         <img
                           src={productImageSource(product.image_url, product.id, product.category)}
                           alt={product.name}
@@ -318,9 +320,11 @@ export function HomePage() {
                         <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium text-burgundy-700 backdrop-blur">
                           {product.category.replace('_', ' ')}
                         </span>
-                      </div>
+                      </Link>
                       <div className="flex flex-1 flex-col px-1 pt-3 pb-1">
-                        <h3 className="font-serif text-base text-burgundy-950 leading-snug line-clamp-2">{product.name}</h3>
+                        <Link to={`/product/${product.id}`} className="group-hover:opacity-80">
+                          <h3 className="font-serif text-base text-burgundy-950 leading-snug line-clamp-2">{product.name}</h3>
+                        </Link>
                         <p className="mt-1 font-serif text-lg text-burgundy-800">₹{product.price.toLocaleString('en-IN')}</p>
                         <button
                           onClick={() => handleAdd(product)}

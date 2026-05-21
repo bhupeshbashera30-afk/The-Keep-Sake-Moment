@@ -37,6 +37,7 @@ export type Product = {
   description: string | null
   price: number
   image_url: string | null
+  gallery_images: string[] | null
   category: string
   stock: number
   is_active: boolean

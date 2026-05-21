@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react' 
 import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource } from '../lib/imageFallbacks'
 import { EVENT_DECOR_SUBPAGES, eventDecorSubpageBySlug } from '../lib/siteConfig'
+import { useCart } from '../context/CartContext'
 
 const ALL_SLUG = 'all'
 
@@ -17,17 +18,16 @@ export function EventDecorSubPage() {
     description: 'Celebration styling for every occasion — birthdays, anniversaries, proposals, corporate events, and special gatherings.',
     tags: [],
   } : null)
+  const { addItem } = useCart()
+  const [addedId, setAddedId] = useState<string | null>(null)
 
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const handleEnquire = (item: any) => {
-    window.dispatchEvent(new CustomEvent('open-enquiry', {
-      detail: {
-        service: 'Event & Decor',
-        notes: `I am interested in "${item.name}" for my ${meta?.title ?? 'event'}.`,
-      },
-    }))
+  const handleAdd = (item: any) => {
+    addItem({ id: item.id, name: item.name, price: item.price, image_url: item.image_url ?? undefined, category: item.category })
+    setAddedId(item.id)
+    setTimeout(() => setAddedId(null), 1500)
   }
 
   useEffect(() => {
@@ -53,8 +53,8 @@ export function EventDecorSubPage() {
     return (
       <section className="mx-auto max-w-5xl px-4 py-20">
         <h1 className="font-serif text-5xl text-burgundy-950">Page not found</h1>
-        <Link to="/services/event-and-decor/all" className="mt-6 inline-flex rounded-full bg-burgundy-800 px-5 py-3 text-sm text-white">
-          Back to Event &amp; Decor
+        <Link to="/services/event-and-decor" className="mt-6 inline-flex rounded-full bg-burgundy-800 px-5 py-3 text-sm text-white">
+          Back to Event & Decor
         </Link>
       </section>
     )
@@ -70,7 +70,7 @@ export function EventDecorSubPage() {
           <ScrollReveal direction="up">
             {/* Breadcrumb */}
             <div className="flex flex-wrap items-center gap-2 text-sm text-burgundy-500">
-              <Link to="/services/event-and-decor/all" className="underline-draw hover:text-burgundy-900">Event &amp; Decor</Link>
+              <Link to="/services/event-and-decor/all" className="underline-draw hover:text-burgundy-900">Event & Decor</Link>
               <span className="text-burgundy-300">›</span>
               <span className="text-burgundy-900 font-medium">{meta.title}</span>
             </div>
@@ -79,7 +79,7 @@ export function EventDecorSubPage() {
             <p className="mt-5 max-w-2xl text-base leading-8 text-burgundy-700 md:text-lg">{meta.description}</p>
 
             {/* Tags */}
-            {meta.tags && meta.tags.length > 0 && (
+            {meta.tags && (
               <div className="mt-5 flex flex-wrap gap-2">
                 {meta.tags.map((tag) => (
                   <span key={tag} className="rounded-full border border-burgundy-200 bg-white px-3 py-1.5 text-xs text-burgundy-600 shadow-soft">
@@ -90,7 +90,7 @@ export function EventDecorSubPage() {
             )}
           </ScrollReveal>
 
-          {/* Subpage tabs — includes "All" */}
+          {/* Subpage tabs — now includes "All" */}
           <ScrollReveal direction="up" delay={150}>
             <div className="mt-8 flex flex-wrap gap-2">
               {/* All tab */}
@@ -140,7 +140,7 @@ export function EventDecorSubPage() {
             <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
               {items.map((item) => (
                 <article key={item.id} className="card-lift flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-[2rem] md:p-8">
-                  <div className="relative mb-3 overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
+                  <Link to={`/product/${item.id}`} className="relative mb-3 block overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
                     <img
                       src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
                       alt={item.name}
@@ -151,18 +151,20 @@ export function EventDecorSubPage() {
                     <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur md:left-3 md:top-3 md:px-3 md:py-1 md:text-xs">
                       {item.category?.replace('_', ' ')}
                     </span>
-                  </div>
-                  <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{item.name}</h3>
+                  </Link>
+                  <Link to={`/product/${item.id}`} className="group-hover:opacity-80">
+                    <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{item.name}</h3>
+                  </Link>
                   <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed">{item.description}</p>
-                  <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-between md:gap-3">
-                    <span className="font-serif text-sm text-burgundy-900 md:text-2xl">
-                      ₹{item.price?.toLocaleString('en-IN')}
-                    </span>
+                  <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-end md:gap-3">
                     <button
-                      onClick={() => handleEnquire(item)}
-                      className="rounded-full border border-burgundy-300 px-3 py-1.5 text-[11px] font-medium text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white md:px-5 md:py-2.5 md:text-sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I would like to enquire about: ${item.name}` } }));
+                      }}
+                      className="rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm bg-burgundy-800 text-white hover:bg-burgundy-700"
                     >
-                      Enquire
+                      Enquire Now
                     </button>
                   </div>
                 </article>

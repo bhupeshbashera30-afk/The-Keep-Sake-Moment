@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { useProducts, type Product } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
@@ -97,7 +98,7 @@ export function ShopPage() {
                   <article
                     className="card-lift group flex h-full flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-3xl md:p-6"
                   >
-                    <div className="relative mb-3 overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
+                    <Link to={`/product/${product.id}`} className="relative mb-3 block overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
                       <img
                         src={productImageSource(product.image_url, product.id, product.category)}
                         alt={product.name}
@@ -110,8 +111,10 @@ export function ShopPage() {
                       <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur md:left-3 md:top-3 md:px-3 md:py-1 md:text-xs">
                         {product.category.replace('_', ' ')}
                       </span>
-                    </div>
-                    <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{product.name}</h3>
+                    </Link>
+                    <Link to={`/product/${product.id}`} className="group-hover:opacity-80">
+                      <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{product.name}</h3>
+                    </Link>
                     <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed md:line-clamp-none">
                       {product.description}
                     </p>
