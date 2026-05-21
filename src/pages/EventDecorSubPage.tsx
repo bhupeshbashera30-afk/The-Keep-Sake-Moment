@@ -1,10 +1,9 @@
 import { useParams, Link } from 'react-router-dom'
-import { useEffect, useState } from 'react' 
+import { useEffect, useState } from 'react'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource } from '../lib/imageFallbacks'
 import { EVENT_DECOR_SUBPAGES, eventDecorSubpageBySlug } from '../lib/siteConfig'
-import { useCart } from '../context/CartContext'
 
 const ALL_SLUG = 'all'
 
@@ -18,16 +17,17 @@ export function EventDecorSubPage() {
     description: 'Celebration styling for every occasion — birthdays, anniversaries, proposals, corporate events, and special gatherings.',
     tags: [],
   } : null)
-  const { addItem } = useCart()
-  const [addedId, setAddedId] = useState<string | null>(null)
 
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const handleAdd = (item: any) => {
-    addItem({ id: item.id, name: item.name, price: item.price, image_url: item.image_url ?? undefined, category: item.category })
-    setAddedId(item.id)
-    setTimeout(() => setAddedId(null), 1500)
+  const handleEnquire = (item: any) => {
+    window.dispatchEvent(new CustomEvent('open-enquiry', {
+      detail: {
+        service: 'Event & Decor',
+        notes: `I am interested in "${item.name}" for my ${meta?.title ?? 'event'}.`,
+      },
+    }))
   }
 
   useEffect(() => {
@@ -53,8 +53,8 @@ export function EventDecorSubPage() {
     return (
       <section className="mx-auto max-w-5xl px-4 py-20">
         <h1 className="font-serif text-5xl text-burgundy-950">Page not found</h1>
-        <Link to="/services/event-and-decor" className="mt-6 inline-flex rounded-full bg-burgundy-800 px-5 py-3 text-sm text-white">
-          Back to Event & Decor
+        <Link to="/services/event-and-decor/all" className="mt-6 inline-flex rounded-full bg-burgundy-800 px-5 py-3 text-sm text-white">
+          Back to Event &amp; Decor
         </Link>
       </section>
     )
@@ -70,7 +70,7 @@ export function EventDecorSubPage() {
           <ScrollReveal direction="up">
             {/* Breadcrumb */}
             <div className="flex flex-wrap items-center gap-2 text-sm text-burgundy-500">
-              <Link to="/services/event-and-decor/all" className="underline-draw hover:text-burgundy-900">Event & Decor</Link>
+              <Link to="/services/event-and-decor/all" className="underline-draw hover:text-burgundy-900">Event &amp; Decor</Link>
               <span className="text-burgundy-300">›</span>
               <span className="text-burgundy-900 font-medium">{meta.title}</span>
             </div>
@@ -79,7 +79,7 @@ export function EventDecorSubPage() {
             <p className="mt-5 max-w-2xl text-base leading-8 text-burgundy-700 md:text-lg">{meta.description}</p>
 
             {/* Tags */}
-            {meta.tags && (
+            {meta.tags && meta.tags.length > 0 && (
               <div className="mt-5 flex flex-wrap gap-2">
                 {meta.tags.map((tag) => (
                   <span key={tag} className="rounded-full border border-burgundy-200 bg-white px-3 py-1.5 text-xs text-burgundy-600 shadow-soft">
@@ -90,7 +90,7 @@ export function EventDecorSubPage() {
             )}
           </ScrollReveal>
 
-          {/* Subpage tabs — now includes "All" */}
+          {/* Subpage tabs — includes "All" */}
           <ScrollReveal direction="up" delay={150}>
             <div className="mt-8 flex flex-wrap gap-2">
               {/* All tab */}
@@ -159,14 +159,10 @@ export function EventDecorSubPage() {
                       ₹{item.price?.toLocaleString('en-IN')}
                     </span>
                     <button
-                      onClick={() => handleAdd(item)}
-                      className={`rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm ${
-                        addedId === item.id
-                          ? 'bg-green-600 text-white'
-                          : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
-                      }`}
+                      onClick={() => handleEnquire(item)}
+                      className="rounded-full border border-burgundy-300 px-3 py-1.5 text-[11px] font-medium text-burgundy-800 transition hover:border-burgundy-800 hover:bg-burgundy-800 hover:text-white md:px-5 md:py-2.5 md:text-sm"
                     >
-                      {addedId === item.id ? '✓ Added' : 'Add to Cart'}
+                      Enquire
                     </button>
                   </div>
                 </article>
