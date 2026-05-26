@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, ShoppingCart, CreditCard } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart, CreditCard } from 'lucide-react'
 import { supabase, type Product } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource, productImageSource } from '../lib/imageFallbacks'
 import { useCart } from '../context/CartContext'
@@ -16,9 +16,41 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null)
   const [similarProducts, setSimilarProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [addedSimilarId, setAddedSimilarId] = useState<string | null>(null)
   
   // For multiple images support
   const [activeImage, setActiveImage] = useState<string | null>(null)
+
+  // Similar products carousel ref
+  const similarScrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScrollability = () => {
+    const el = similarScrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 4)
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }
+
+  const scrollSimilar = (dir: 'left' | 'right') => {
+    const el = similarScrollRef.current
+    if (!el) return
+    const cardWidth = el.querySelector<HTMLElement>(':scope > *')?.offsetWidth || 220
+    el.scrollBy({ left: dir === 'right' ? cardWidth * 2 : -(cardWidth * 2), behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    const el = similarScrollRef.current
+    if (!el) return
+    checkScrollability()
+    el.addEventListener('scroll', checkScrollability, { passive: true })
+    window.addEventListener('resize', checkScrollability)
+    return () => {
+      el.removeEventListener('scroll', checkScrollability)
+      window.removeEventListener('resize', checkScrollability)
+    }
+  }, [similarProducts])
 
   useEffect(() => {
     async function fetchProduct() {
@@ -35,14 +67,14 @@ export function ProductDetailPage() {
       setProduct(data as Product)
       setActiveImage(data.image_url)
 
-      // Fetch similar products in same category
+      // Fetch similar products in same category (more for carousel)
       const { data: similar } = await supabase
         .from('products')
         .select('*')
         .eq('category', data.category)
         .eq('is_active', true)
         .neq('id', data.id)
-        .limit(4)
+        .limit(12)
 
       if (similar) {
         setSimilarProducts(similar as Product[])
@@ -81,6 +113,12 @@ export function ProductDetailPage() {
     addItem({ id: product.id, name: product.name, price: product.price, image_url: product.image_url ?? undefined, category: product.category })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
+  }
+
+  const handleAddSimilar = (p: Product) => {
+    addItem({ id: p.id, name: p.name, price: p.price, image_url: p.image_url ?? undefined, category: p.category })
+    setAddedSimilarId(p.id)
+    setTimeout(() => setAddedSimilarId(null), 1500)
   }
 
   const handleBuyNow = () => {
@@ -180,33 +218,132 @@ export function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Similar Products */}
+      {/* ── Similar Products Carousel ────────────────────────── */}
       {similarProducts.length > 0 && (
-        <section className="mt-20 mx-auto max-w-7xl px-4 md:px-8 border-t border-burgundy-100 pt-16">
-          <ScrollReveal direction="up">
-            <h2 className="font-serif text-3xl text-burgundy-950 mb-8">You may also like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {similarProducts.map((p) => (
-                <Link key={p.id} to={`/product/${p.id}`} className="card-lift group relative block rounded-2xl overflow-hidden bg-white border border-burgundy-100 p-2 shadow-sm hover:shadow-md transition">
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden bg-burgundy-50 mb-3">
-                    <img 
-                      src={productImageSource(p.image_url, p.id, p.category)} 
-                      alt={p.name}
-                      className="w-full h-full object-cover transition duration-500 group-hover:scale-110"
-                      loading="lazy"
-                      onError={(e) => applyImageFallback(e, imageFallbackSource(p.id, p.category))}
-                    />
-                  </div>
-                  <div className="px-2 pb-2">
-                    <h3 className="font-serif text-sm md:text-base text-burgundy-950 line-clamp-1 group-hover:text-burgundy-700">{p.name}</h3>
-                    {!(EVENT_DECOR_SUBPAGES.map(s => s.slug).includes(p.category) || p.category === 'event-and-decor' || !p.price) && (
-                      <p className="mt-1 font-serif text-burgundy-800 text-sm">₹{p.price.toLocaleString('en-IN')}</p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </ScrollReveal>
+        <section className="mt-16 border-t border-burgundy-100 pt-12 pb-4">
+          <div className="mx-auto max-w-7xl px-4 md:px-8">
+            <ScrollReveal direction="up">
+              {/* Header with navigation arrows */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.35em] text-burgundy-500 mb-1">Similar Products</p>
+                  <h2 className="font-serif text-2xl md:text-3xl text-burgundy-950">You may also like</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => scrollSimilar('left')}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border transition shadow-sm ${
+                      canScrollLeft
+                        ? 'border-burgundy-200 bg-white text-burgundy-700 hover:bg-burgundy-50 hover:border-burgundy-300 cursor-pointer'
+                        : 'border-burgundy-100 bg-burgundy-50/50 text-burgundy-300 cursor-not-allowed'
+                    }`}
+                    disabled={!canScrollLeft}
+                    aria-label="Scroll left"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => scrollSimilar('right')}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border transition shadow-sm ${
+                      canScrollRight
+                        ? 'border-burgundy-200 bg-white text-burgundy-700 hover:bg-burgundy-50 hover:border-burgundy-300 cursor-pointer'
+                        : 'border-burgundy-100 bg-burgundy-50/50 text-burgundy-300 cursor-not-allowed'
+                    }`}
+                    disabled={!canScrollRight}
+                    aria-label="Scroll right"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Carousel container */}
+              <div className="relative">
+                {/* Left fade overlay */}
+                {canScrollLeft && (
+                  <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#faf6f3] to-transparent z-10 pointer-events-none" />
+                )}
+
+                {/* Scrollable row */}
+                <div
+                  ref={similarScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {similarProducts.map((p) => {
+                    const pIsEventDecor = EVENT_DECOR_SUBPAGES.map(s => s.slug).includes(p.category) || p.category === 'event-and-decor'
+                    const pIsCustomQuote = !p.price || p.price === 0
+                    const showPrice = !pIsEventDecor && !pIsCustomQuote
+
+                    return (
+                      <article
+                        key={p.id}
+                        className="group flex-shrink-0 snap-start w-[48%] sm:w-[32%] md:w-[23%] lg:w-[18%] flex flex-col rounded-2xl border border-burgundy-100 bg-white shadow-soft overflow-hidden transition hover:shadow-lg hover:-translate-y-1"
+                      >
+                        {/* Image with link */}
+                        <Link to={`/product/${p.id}`} className="relative block overflow-hidden aspect-square bg-burgundy-50">
+                          <img
+                            src={productImageSource(p.image_url, p.id, p.category)}
+                            alt={p.name}
+                            className="w-full h-full object-cover transition duration-500 group-hover:scale-110"
+                            loading="lazy"
+                            onError={(e) => applyImageFallback(e, imageFallbackSource(p.id, p.category))}
+                          />
+                          {/* Category badge */}
+                          <span className="absolute top-2 left-2 rounded-full bg-white/90 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-burgundy-700">
+                            {p.category.replace('_', ' ')}
+                          </span>
+                        </Link>
+
+                        {/* Product info */}
+                        <div className="flex flex-1 flex-col p-3">
+                          <Link to={`/product/${p.id}`} className="hover:opacity-80 transition">
+                            <h3 className="font-serif text-sm md:text-base text-burgundy-950 leading-snug line-clamp-2 mb-1">
+                              {p.name}
+                            </h3>
+                          </Link>
+
+                          {showPrice && (
+                            <p className="font-serif text-lg text-burgundy-800 font-medium mt-auto">
+                              ₹{p.price.toLocaleString('en-IN')}
+                            </p>
+                          )}
+
+                          {/* Action button */}
+                          <div className="mt-2">
+                            {(pIsEventDecor || pIsCustomQuote) ? (
+                              <Link
+                                to={`/product/${p.id}`}
+                                className="block w-full text-center rounded-full px-3 py-2 text-xs font-medium bg-burgundy-50 text-burgundy-800 hover:bg-burgundy-100 transition"
+                              >
+                                View Details
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => handleAddSimilar(p)}
+                                className={`w-full rounded-full px-3 py-2 text-xs font-medium transition ${
+                                  addedSimilarId === p.id
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                                }`}
+                              >
+                                {addedSimilarId === p.id ? '✓ Added' : 'Add to Cart'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+
+                {/* Right fade overlay */}
+                {canScrollRight && (
+                  <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#faf6f3] to-transparent z-10 pointer-events-none" />
+                )}
+              </div>
+            </ScrollReveal>
+          </div>
         </section>
       )}
     </div>
