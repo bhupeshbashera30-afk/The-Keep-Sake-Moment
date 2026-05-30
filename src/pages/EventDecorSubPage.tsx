@@ -44,7 +44,7 @@ export function EventDecorSubPage() {
       query.in('category', allSlugs)
     }
     query.then(({ data }) => {
-      setItems(data || [])
+      setItems((data || []).filter(p => p.name !== 'Homepage Settings'))
       setLoading(false)
     })
   }, [subslug])
@@ -144,7 +144,7 @@ export function EventDecorSubPage() {
                     <img
                       src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
                       alt={item.name}
-                      className="h-28 w-full object-cover sm:h-36 md:h-52"
+                      className="h-28 w-full object-contain sm:h-36 md:h-52 bg-burgundy-50/10"
                       loading="lazy"
                       onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, subslug))}
                     />

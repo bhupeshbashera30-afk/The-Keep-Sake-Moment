@@ -102,7 +102,7 @@ export function ShopPage() {
                       <img
                         src={productImageSource(product.image_url, product.id, product.category)}
                         alt={product.name}
-                        className="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36 md:h-52"
+                        className="h-28 w-full object-contain transition duration-500 group-hover:scale-105 sm:h-36 md:h-52 bg-burgundy-50/10"
                         loading="lazy"
                         width={600}
                         height={400}

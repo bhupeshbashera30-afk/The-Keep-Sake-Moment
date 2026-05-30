@@ -74,6 +74,7 @@ export function ProductDetailPage() {
         .eq('category', data.category)
         .eq('is_active', true)
         .neq('id', data.id)
+        .neq('name', 'Homepage Settings')
         .limit(12)
 
       if (similar) {
@@ -145,7 +146,7 @@ export function ProductDetailPage() {
               <img 
                 src={productImageSource(activeImage, product.id, product.category)} 
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 onError={(e) => applyImageFallback(e, imageFallbackSource(product.id, product.category))}
               />
             </div>
@@ -161,7 +162,7 @@ export function ProductDetailPage() {
                     <img 
                       src={productImageSource(img, product.id, product.category)} 
                       alt={`Thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       onError={(e) => applyImageFallback(e, imageFallbackSource(product.id, product.category))}
                     />
                   </button>
@@ -285,7 +286,7 @@ export function ProductDetailPage() {
                           <img
                             src={productImageSource(p.image_url, p.id, p.category)}
                             alt={p.name}
-                            className="w-full h-full object-cover transition duration-500 group-hover:scale-110"
+                            className="w-full h-full object-contain transition duration-500 group-hover:scale-110 bg-burgundy-50/10"
                             loading="lazy"
                             onError={(e) => applyImageFallback(e, imageFallbackSource(p.id, p.category))}
                           />

@@ -23,7 +23,7 @@ export function ServicesPage() {
         const { data } = await supabase!.from('products').select('*').eq('is_active', true).eq('category', slug)
 
         if (data) {
-          const mapped = data.map(p => ({
+          const mapped = data.filter(p => p.name !== 'Homepage Settings').map(p => ({
             id: p.id as unknown as number, // Using the string ID temporarily for rendering
             name: p.name,
             slug: p.id,
@@ -164,7 +164,7 @@ function ServiceCard({ item, categorySlug, categoryName, hidePricing = false }: 
         <img
           src={item.image_url ?? item.hero_image ?? imageFallbackSource(String(item.id), categorySlug)}
           alt={item.name}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className="h-full w-full object-contain transition duration-500 group-hover:scale-105 bg-burgundy-50/10"
           loading="lazy"
           onError={(event) => applyImageFallback(event, imageFallbackSource(String(item.id), categorySlug))}
         />

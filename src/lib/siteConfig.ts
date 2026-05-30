@@ -86,7 +86,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     route: '/services/dinner-night',
     description:
       'Styled dining experiences designed around mood, lighting, and personal atmosphere. Fixed-price setups alongside custom add-ons.',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=600&auto=format&fit=crop',
+    image: '/images/dinner-night-category.png',
   },
 ]
 
@@ -97,7 +97,7 @@ export const HOME_CATEGORY_CARDS = [
     label: 'Flower Bouquet',
     route: '/shop?category=flowers',
     description: 'Fresh and crafted flower arrangements.',
-    image: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?q=80&w=600&auto=format&fit=crop',
+    image: '/images/flowers-category.jpg',
   },
   {
     slug: 'hampers',
@@ -123,12 +123,12 @@ export const HERO_SLIDES = [
     tagline: 'Capture every moment',
   },
   {
-    image: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?q=80&w=1600&auto=format&fit=crop',
+    image: '/images/flowers-category.jpg',
     occasion: 'Hampers & Flowers',
     tagline: 'Gifts worth keeping',
   },
   {
-    image: SERVICE_CATEGORIES.find((category) => category.slug === 'dinner-night')!.image.replace('w=600', 'w=1600'),
+    image: '/images/dinner-night-category.png',
     occasion: 'Dinner Nights',
     tagline: 'Intimate moments, curated',
   },

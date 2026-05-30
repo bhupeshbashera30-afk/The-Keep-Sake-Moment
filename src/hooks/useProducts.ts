@@ -28,7 +28,7 @@ export function useProducts(category?: string) {
       const response = await query
       console.log('[useProducts] query response:', response)
       
-      setProducts((response.data as Product[]) ?? [])
+      setProducts(((response.data as Product[]) ?? []).filter(p => p.name !== 'Homepage Settings'))
     } catch (err) {
       console.error('[useProducts] CAUGHT EXCEPTION:', err)
     } finally {
@@ -57,7 +57,7 @@ export function useAllProducts() {
       .from('products')
       .select('*')
       .order('created_at', { ascending: false })
-    setProducts((data as Product[]) ?? [])
+    setProducts(((data as Product[]) ?? []).filter(p => p.name !== 'Homepage Settings'))
     setLoading(false)
   }, [])
 

@@ -8,10 +8,62 @@ import { useProducts, type Product } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
 import { applyImageFallback, imageFallbackSource, productImageSource } from '../lib/imageFallbacks'
 import { HERO_SLIDES, HOME_CATEGORY_CARDS, SHOP_CATEGORIES, TESTIMONIALS } from '../lib/siteConfig'
+import { supabase } from '../lib/supabase'
 
 /* ── Stats — REMOVED ── */
 
 export function HomePage() {
+  const [heroSlides, setHeroSlides] = useState(HERO_SLIDES)
+  const [categoryCards, setCategoryCards] = useState(HOME_CATEGORY_CARDS)
+  const [testimonials, setTestimonials] = useState(TESTIMONIALS)
+
+  /* ── Fetch Homepage Settings ────────────────────────────── */
+  useEffect(() => {
+    if (!supabase) return
+    async function loadSettings() {
+      try {
+        const { data, error } = await supabase!
+          .from('products')
+          .select('description')
+          .eq('name', 'Homepage Settings')
+          .maybeSingle()
+
+        if (!error && data && data.description) {
+          const settings = JSON.parse(data.description)
+          if (settings.heroSlides && Array.isArray(settings.heroSlides)) {
+            const validatedSlides = settings.heroSlides.map((slide: any) => ({
+              image: slide.image || '',
+              occasion: slide.occasion || '',
+              tagline: slide.tagline || '',
+            }))
+            setHeroSlides(validatedSlides)
+          }
+          if (settings.categories) {
+            const updatedCards = HOME_CATEGORY_CARDS.map(card => {
+              if (settings.categories[card.slug]) {
+                return { ...card, image: settings.categories[card.slug] }
+              }
+              return card
+            })
+            setCategoryCards(updatedCards)
+          }
+          if (settings.testimonials && Array.isArray(settings.testimonials)) {
+            const validatedTestimonials = settings.testimonials.map((t: any) => ({
+              name: t.name || '',
+              event: t.event || '',
+              text: t.text || '',
+              rating: Number(t.rating) || 5,
+            }))
+            setTestimonials(validatedTestimonials)
+          }
+        }
+      } catch (err) {
+        console.error('Error loading custom homepage settings:', err)
+      }
+    }
+    loadSettings()
+  }, [])
+
   /* ── Hero slideshow state ────────────────────────────────── */
   const [currentSlide, setCurrentSlide] = useState(0)
   const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -19,9 +71,9 @@ export function HomePage() {
   const startSlideTimer = useCallback(() => {
     if (slideTimer.current) clearInterval(slideTimer.current)
     slideTimer.current = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
     }, 5000)
-  }, [])
+  }, [heroSlides])
 
   useEffect(() => {
     startSlideTimer()
@@ -32,8 +84,8 @@ export function HomePage() {
     setCurrentSlide(idx)
     startSlideTimer()
   }
-  const prevSlide = () => goToSlide((currentSlide - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)
-  const nextSlide = () => goToSlide((currentSlide + 1) % HERO_SLIDES.length)
+  const prevSlide = () => goToSlide((currentSlide - 1 + heroSlides.length) % heroSlides.length)
+  const nextSlide = () => goToSlide((currentSlide + 1) % heroSlides.length)
 
   /* ── Quick grabs products ───────────────────────────────── */
   const { products, loading: productsLoading } = useProducts()
@@ -62,20 +114,22 @@ export function HomePage() {
       <section className="relative overflow-hidden bg-[#faf6f3]">
         {/* Full-width landscape image carousel */}
         <div className="relative w-full h-[clamp(220px,45vh,520px)] md:h-[clamp(380px,65vh,760px)]">
-          {HERO_SLIDES.map((slide, idx) => (
+          {heroSlides.map((slide, idx) => (
             <div
               key={idx}
               className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
               style={{ opacity: idx === currentSlide ? 1 : 0 }}
             >
-              <img
-                src={slide.image}
-                srcSet={`${slide.image.replace('w=1600', 'w=600').replace('q=80', 'q=60')} 600w, ${slide.image} 1600w`}
-                sizes="(max-width: 768px) 600px, 1600px"
-                alt={slide.occasion}
-                className="h-full w-full object-cover"
-                loading={idx === 0 ? 'eager' : 'lazy'}
-              />
+              {slide.image && (
+                <img
+                  src={slide.image}
+                  srcSet={slide.image.includes('unsplash.com') ? `${slide.image.replace('w=1600', 'w=600').replace('q=80', 'q=60')} 600w, ${slide.image} 1600w` : undefined}
+                  sizes="(max-width: 768px) 600px, 1600px"
+                  alt={slide.occasion}
+                  className="h-full w-full object-cover"
+                  loading={idx === 0 ? 'eager' : 'lazy'}
+                />
+              )}
               {/* Dark gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
             </div>
@@ -83,22 +137,24 @@ export function HomePage() {
 
           {/* Slide content overlay */}
           <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-14 lg:p-20">
-            <div className="relative z-10">
-              <p className="text-xs uppercase tracking-[0.4em] text-white/70">
-                {HERO_SLIDES[currentSlide].occasion}
-              </p>
-              <h1 className="mt-2 font-serif text-4xl text-white md:text-6xl lg:text-7xl">
-                {HERO_SLIDES[currentSlide].tagline}
-              </h1>
-              <div className="mt-5 flex flex-wrap items-center gap-4">
-                <button
-                  onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry'))}
-                  className="btn-magnetic rounded-full bg-white px-6 py-3 text-sm font-medium text-burgundy-900 hover:bg-burgundy-50"
-                >
-                  Start your enquiry
-                </button>
+            {heroSlides[currentSlide] && (
+              <div className="relative z-10">
+                <p className="text-xs uppercase tracking-[0.4em] text-white/70">
+                  {heroSlides[currentSlide].occasion}
+                </p>
+                <h1 className="mt-2 font-serif text-4xl text-white md:text-6xl lg:text-7xl">
+                  {heroSlides[currentSlide].tagline}
+                </h1>
+                <div className="mt-5 flex flex-wrap items-center gap-4">
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry'))}
+                    className="btn-magnetic rounded-full bg-white px-6 py-3 text-sm font-medium text-burgundy-900 hover:bg-burgundy-50"
+                  >
+                    Start your enquiry
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Slide controls */}
             <div className="mt-6 flex items-center gap-3">
@@ -106,7 +162,7 @@ export function HomePage() {
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="flex gap-2">
-                {HERO_SLIDES.map((_, idx) => (
+                {heroSlides.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => goToSlide(idx)}
@@ -140,21 +196,23 @@ export function HomePage() {
 
           {/* 2-col on mobile, original desktop layout */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-5">
-            {HOME_CATEGORY_CARDS.map((cat, idx) => (
+            {categoryCards.map((cat, idx) => (
               <ScrollReveal key={cat.slug} direction="up" delay={(idx % 4) * 80} className="h-full">
                 <Link
                   to={cat.route}
                   className="card-lift group relative flex h-full flex-col overflow-hidden rounded-[1.2rem] border border-burgundy-100 bg-white shadow-soft md:rounded-[1.5rem]"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={cat.image}
-                      srcSet={cat.image.includes('unsplash.com') ? `${cat.image.replace('w=600', 'w=300').replace('q=80', 'q=60')} 300w, ${cat.image} 600w` : undefined}
-                      sizes="(max-width: 768px) 300px, 600px"
-                      alt={cat.label}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                      loading="lazy"
-                    />
+                    {cat.image && (
+                      <img
+                        src={cat.image}
+                        srcSet={cat.image.includes('unsplash.com') ? `${cat.image.replace('w=600', 'w=300').replace('q=80', 'q=60')} 300w, ${cat.image} 600w` : undefined}
+                        sizes="(max-width: 768px) 300px, 600px"
+                        alt={cat.label}
+                        className="h-full w-full object-contain transition duration-700 group-hover:scale-110 bg-burgundy-50/20"
+                        loading="lazy"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
                   </div>
                   <div className="flex flex-1 items-center justify-between px-3 py-2.5 sm:px-5 sm:py-4">
@@ -182,8 +240,8 @@ export function HomePage() {
           </ScrollReveal>
 
           {/* Mobile: horizontal scroll; Desktop: 4-col grid */}
-          <div className="mt-10 -mx-4 px-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:pb-0" style={{ scrollbarWidth: 'none' }}>
-            {TESTIMONIALS.map((t, idx) => (
+           <div className="mt-10 -mx-4 px-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:pb-0" style={{ scrollbarWidth: 'none' }}>
+            {testimonials.map((t, idx) => (
               <article
                 key={t.name}
                 className="snap-start shrink-0 w-[72vw] max-w-[260px] card-lift flex flex-col rounded-[1.2rem] border border-burgundy-100 bg-parchment p-4 shadow-soft md:w-auto md:max-w-none md:rounded-[1.5rem] md:p-6"
@@ -268,7 +326,7 @@ export function HomePage() {
                         <img
                           src={productImageSource(product.image_url, product.id, product.category)}
                           alt={product.name}
-                          className="h-28 w-full object-cover transition duration-500 group-hover:scale-105"
+                          className="h-28 w-full object-contain transition duration-500 group-hover:scale-105 bg-burgundy-50/10"
                           loading="lazy"
                           onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
                         />
@@ -313,7 +371,7 @@ export function HomePage() {
                         <img
                           src={productImageSource(product.image_url, product.id, product.category)}
                           alt={product.name}
-                          className="h-36 w-full object-cover transition duration-500 group-hover:scale-105"
+                          className="h-36 w-full object-contain transition duration-500 group-hover:scale-105 bg-burgundy-50/10"
                           loading="lazy"
                           onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
                         />
