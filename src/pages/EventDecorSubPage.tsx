@@ -24,6 +24,9 @@ export function EventDecorSubPage() {
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Category images: one representative image per subcategory
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({})
+
   const handleAdd = (item: any) => {
     addItem({ id: item.id, name: item.name, price: item.price, image_url: item.image_url ?? undefined, category: item.category })
     setAddedId(item.id)
@@ -34,19 +37,35 @@ export function EventDecorSubPage() {
     setLoading(true)
     if (!supabase) { setLoading(false); return }
     const allSlugs = EVENT_DECOR_SUBPAGES.map((s) => s.slug)
-    const query = supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
-    if (subslug !== ALL_SLUG) {
-      query.eq('category', subslug)
+
+    if (subslug === ALL_SLUG) {
+      // Fetch one representative image per subcategory for the category boxes
+      supabase
+        .from('products')
+        .select('category, image_url')
+        .eq('is_active', true)
+        .in('category', allSlugs)
+        .then(({ data }) => {
+          const images: Record<string, string> = {}
+          for (const p of (data || [])) {
+            if (p.image_url && !images[p.category]) {
+              images[p.category] = p.image_url
+            }
+          }
+          setCategoryImages(images)
+          setLoading(false)
+        })
     } else {
-      query.in('category', allSlugs)
+      const query = supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .eq('category', subslug)
+      query.then(({ data }) => {
+        setItems((data || []).filter(p => p.name !== 'Homepage Settings'))
+        setLoading(false)
+      })
     }
-    query.then(({ data }) => {
-      setItems((data || []).filter(p => p.name !== 'Homepage Settings'))
-      setLoading(false)
-    })
   }, [subslug])
 
   if (!meta) {
@@ -122,70 +141,120 @@ export function EventDecorSubPage() {
         </div>
       </section>
 
-      {/* ── Items ────────────────────────────────────────────── */}
+      {/* ── Content ──────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
-        {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse rounded-[2rem] border border-burgundy-100 bg-white p-8">
-                <div className="h-48 w-full rounded-2xl bg-burgundy-50" />
-                <div className="mt-4 h-4 w-24 rounded-full bg-burgundy-100" />
-                <div className="mt-3 h-6 w-48 rounded-full bg-burgundy-100" />
-                <div className="mt-3 h-20 rounded-2xl bg-burgundy-50" />
-              </div>
-            ))}
-          </div>
-        ) : items.length > 0 ? (
-          <ScrollReveal stagger>
-            <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
-              {items.map((item) => (
-                <article key={item.id} className="card-lift flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-[2rem] md:p-8">
-                  <Link to={`/product/${item.id}`} className="relative mb-3 block overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
-                    <img
-                      src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
-                      alt={item.name}
-                      className="h-28 w-full object-contain sm:h-36 md:h-52 bg-burgundy-50/10"
-                      loading="lazy"
-                      onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, subslug))}
-                    />
-                    <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur md:left-3 md:top-3 md:px-3 md:py-1 md:text-xs">
-                      {item.category?.replace('_', ' ')}
-                    </span>
-                  </Link>
-                  <Link to={`/product/${item.id}`} className="group-hover:opacity-80">
-                    <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{item.name}</h3>
-                  </Link>
-                  <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed">{item.description}</p>
-                  <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-end md:gap-3">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I would like to enquire about: ${item.name}` } }));
-                      }}
-                      className="rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm bg-burgundy-800 text-white hover:bg-burgundy-700"
-                    >
-                      Enquire Now
-                    </button>
+        {subslug === ALL_SLUG ? (
+          /* ── Category Boxes (All view) ── */
+          loading ? (
+            <div className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-3 xl:grid-cols-5">
+              {EVENT_DECOR_SUBPAGES.map((_, i) => (
+                <div key={i} className="animate-pulse rounded-[1.2rem] border border-burgundy-100 bg-white md:rounded-[1.5rem]">
+                  <div className="aspect-[4/3] rounded-t-[1.2rem] bg-burgundy-50 md:rounded-t-[1.5rem]" />
+                  <div className="px-3 py-3 sm:px-5 sm:py-4">
+                    <div className="h-4 w-20 rounded-full bg-burgundy-100" />
                   </div>
-                </article>
+                </div>
               ))}
             </div>
-          </ScrollReveal>
-        ) : (
-          <ScrollReveal direction="up">
-            <div className="rounded-[2rem] border border-burgundy-100 bg-[#f7f1ee] p-12 text-center">
-              <p className="font-serif text-3xl text-burgundy-900">Styling packages available on request</p>
-              <p className="mt-4 text-sm leading-7 text-burgundy-700">
-                {meta.title} packages are customised to each event. Share your vision and the team will shape the experience.
-              </p>
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I would like to start an enquiry for a ${meta.title} event.` } }))}
-                className="btn-magnetic mt-8 inline-flex rounded-full bg-burgundy-800 px-6 py-3 text-sm text-white transition hover:bg-burgundy-700"
-              >
-                Start an enquiry
-              </button>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-3 xl:grid-cols-5">
+              {EVENT_DECOR_SUBPAGES.map((sub, idx) => (
+                <ScrollReveal key={sub.slug} direction="up" delay={(idx % 5) * 80} className="h-full">
+                  <Link
+                    to={`/services/event-and-decor/${sub.slug}`}
+                    className="card-lift group relative flex h-full flex-col overflow-hidden rounded-[1.2rem] border border-burgundy-100 bg-white shadow-soft md:rounded-[1.5rem]"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      {categoryImages[sub.slug] ? (
+                        <img
+                          src={categoryImages[sub.slug]}
+                          alt={sub.label}
+                          className="h-full w-full object-contain transition duration-700 group-hover:scale-110 bg-burgundy-50/20"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-burgundy-50/40">
+                          <span className="font-serif text-2xl text-burgundy-200">{sub.label[0]}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
+                    </div>
+                    <div className="flex flex-1 items-center justify-between px-3 py-2.5 sm:px-5 sm:py-4">
+                      <h3 className="font-serif text-sm text-burgundy-950 leading-tight sm:text-xl">{sub.label}</h3>
+                      <span className="flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-burgundy-50 text-burgundy-600 text-xs transition group-hover:bg-burgundy-800 group-hover:text-white">
+                        →
+                      </span>
+                    </div>
+                  </Link>
+                </ScrollReveal>
+              ))}
             </div>
-          </ScrollReveal>
+          )
+        ) : (
+          /* ── Product Cards (specific category view) ── */
+          loading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse rounded-[2rem] border border-burgundy-100 bg-white p-8">
+                  <div className="h-48 w-full rounded-2xl bg-burgundy-50" />
+                  <div className="mt-4 h-4 w-24 rounded-full bg-burgundy-100" />
+                  <div className="mt-3 h-6 w-48 rounded-full bg-burgundy-100" />
+                  <div className="mt-3 h-20 rounded-2xl bg-burgundy-50" />
+                </div>
+              ))}
+            </div>
+          ) : items.length > 0 ? (
+            <ScrollReveal stagger>
+              <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
+                {items.map((item) => (
+                  <article key={item.id} className="card-lift flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-[2rem] md:p-8">
+                    <Link to={`/product/${item.id}`} className="relative mb-3 block overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
+                      <img
+                        src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
+                        alt={item.name}
+                        className="h-28 w-full object-contain sm:h-36 md:h-52 bg-burgundy-50/10"
+                        loading="lazy"
+                        onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, subslug))}
+                      />
+                      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-burgundy-700 backdrop-blur md:left-3 md:top-3 md:px-3 md:py-1 md:text-xs">
+                        {item.category?.replace('_', ' ')}
+                      </span>
+                    </Link>
+                    <Link to={`/product/${item.id}`} className="group-hover:opacity-80">
+                      <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{item.name}</h3>
+                    </Link>
+                    <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed">{item.description}</p>
+                    <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-end md:gap-3">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I would like to enquire about: ${item.name}` } }));
+                        }}
+                        className="rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm bg-burgundy-800 text-white hover:bg-burgundy-700"
+                      >
+                        Enquire Now
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </ScrollReveal>
+          ) : (
+            <ScrollReveal direction="up">
+              <div className="rounded-[2rem] border border-burgundy-100 bg-[#f7f1ee] p-12 text-center">
+                <p className="font-serif text-3xl text-burgundy-900">Styling packages available on request</p>
+                <p className="mt-4 text-sm leading-7 text-burgundy-700">
+                  {meta.title} packages are customised to each event. Share your vision and the team will shape the experience.
+                </p>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I would like to start an enquiry for a ${meta.title} event.` } }))}
+                  className="btn-magnetic mt-8 inline-flex rounded-full bg-burgundy-800 px-6 py-3 text-sm text-white transition hover:bg-burgundy-700"
+                >
+                  Start an enquiry
+                </button>
+              </div>
+            </ScrollReveal>
+          )
         )}
       </section>
 
