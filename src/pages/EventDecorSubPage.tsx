@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useEffect, useState } from 'react' 
+import { useEffect, useState } from 'react'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { supabase } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource } from '../lib/imageFallbacks'
@@ -115,11 +115,10 @@ export function EventDecorSubPage() {
               {/* All tab */}
               <Link
                 to="/services/event-and-decor/all"
-                className={`rounded-full border px-4 py-2 text-sm transition ${
-                  subslug === ALL_SLUG
+                className={`rounded-full border px-4 py-2 text-sm transition ${subslug === ALL_SLUG
                     ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.28)]'
                     : 'border-burgundy-200 bg-white text-burgundy-700 hover:border-burgundy-500 hover:text-burgundy-900'
-                }`}
+                  }`}
               >
                 All
               </Link>
@@ -127,11 +126,10 @@ export function EventDecorSubPage() {
                 <Link
                   key={sub.slug}
                   to={`/services/event-and-decor/${sub.slug}`}
-                  className={`rounded-full border px-4 py-2 text-sm transition ${
-                    sub.slug === subslug
+                  className={`rounded-full border px-4 py-2 text-sm transition ${sub.slug === subslug
                       ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.28)]'
                       : 'border-burgundy-200 bg-white text-burgundy-700 hover:border-burgundy-500 hover:text-burgundy-900'
-                  }`}
+                    }`}
                 >
                   {sub.label}
                 </Link>

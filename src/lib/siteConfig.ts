@@ -86,7 +86,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     route: '/services/dinner-night',
     description:
       'Styled dining experiences designed around mood, lighting, and personal atmosphere. Fixed-price setups alongside custom add-ons.',
-    image: '/images/dinner-night-category.png',
+    image: '/images/dinner-night-category.jpg',
   },
 ]
 
@@ -128,7 +128,7 @@ export const HERO_SLIDES = [
     tagline: 'Gifts worth keeping',
   },
   {
-    image: '/images/dinner-night-category.png',
+    image: '/images/dinner-night-category.jpg',
     occasion: 'Dinner Nights',
     tagline: 'Intimate moments, curated',
   },
