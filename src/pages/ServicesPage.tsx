@@ -164,7 +164,7 @@ function ServiceCard({ item, categorySlug, categoryName, hidePricing = false }: 
         <img
           src={item.image_url ?? item.hero_image ?? imageFallbackSource(String(item.id), categorySlug)}
           alt={item.name}
-          className="h-full w-full object-contain transition duration-500 group-hover:scale-105 bg-burgundy-50/10"
+          className="h-full w-full object-contain transition duration-500 group-hover:scale-105 bg-[#f7f1ee]"
           loading="lazy"
           onError={(event) => applyImageFallback(event, imageFallbackSource(String(item.id), categorySlug))}
         />
@@ -175,7 +175,7 @@ function ServiceCard({ item, categorySlug, categoryName, hidePricing = false }: 
         <Link to={`/product/${item.id}`} className="group-hover:opacity-80">
           <h3 className="mt-1 font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:mt-2 md:text-2xl">{item.name}</h3>
         </Link>
-        <p className="mt-1.5 flex-1 text-[11px] leading-5 text-burgundy-700 line-clamp-3 md:mt-3 md:text-sm md:leading-7 md:line-clamp-none">{item.short_description}</p>
+
 
         {!hidePricing && hasPrice && (
           <p className="mt-2 font-serif text-sm text-burgundy-900 md:mt-4 md:text-2xl">

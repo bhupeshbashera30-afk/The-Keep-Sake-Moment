@@ -1,11 +1,136 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, ShoppingCart, CreditCard } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart, CreditCard, CheckCircle2, AlertCircle, Settings, XCircle, Package } from 'lucide-react'
 import { supabase, type Product } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource, productImageSource } from '../lib/imageFallbacks'
 import { useCart } from '../context/CartContext'
 import { ScrollReveal } from '../components/ScrollReveal'
 import { EVENT_DECOR_SUBPAGES } from '../lib/siteConfig'
+
+// ── Structured Description ──────────────────────────────────────────────────
+// Parses the raw description into labeled sections using known keywords.
+// All styling uses only the website's burgundy palette.
+
+const SECTION_MAP: { pattern: RegExp; title: string; icon: React.ReactNode }[] = [
+  {
+    pattern: /what.?s included in this decoration package|what.?s included|included in this/i,
+    title: "What's Included",
+    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+  },
+  {
+    pattern: /important notes?/i,
+    title: 'Important Notes',
+    icon: <AlertCircle className="h-3.5 w-3.5" />,
+  },
+  {
+    pattern: /setup (?:guidelines?|notes?|info)/i,
+    title: 'Setup Guidelines',
+    icon: <Settings className="h-3.5 w-3.5" />,
+  },
+  {
+    pattern: /cancellation\s*(?:&|and)?\s*complaint policy|cancellation policy|complaint policy/i,
+    title: 'Cancellation & Policy',
+    icon: <XCircle className="h-3.5 w-3.5" />,
+  },
+]
+
+// Split the raw text at known section headers — only once per header type
+function splitIntoSections(raw: string): { title: string; icon: React.ReactNode; body: string }[] {
+  // Find all split positions
+  const positions: { index: number; def: typeof SECTION_MAP[0] }[] = []
+
+  for (const def of SECTION_MAP) {
+    const match = raw.match(def.pattern)
+    if (match && match.index !== undefined) {
+      positions.push({ index: match.index, def })
+    }
+  }
+
+  if (positions.length === 0) return []
+
+  // Sort by position
+  positions.sort((a, b) => a.index - b.index)
+
+  const sections: { title: string; icon: React.ReactNode; body: string }[] = []
+
+  for (let i = 0; i < positions.length; i++) {
+    const start = positions[i].index
+    const end = i + 1 < positions.length ? positions[i + 1].index : raw.length
+    const chunk = raw.slice(start, end).trim()
+
+    // Remove the matched header label from the start
+    const body = chunk.replace(positions[i].def.pattern, '').replace(/^[\s:]+/, '').trim()
+
+    sections.push({ title: positions[i].def.title, icon: positions[i].def.icon, body })
+  }
+
+  return sections
+}
+
+// Split a body string into bullet items
+function bodyToItems(body: string): string[] {
+  return body
+    .split(/(?<=[.!?])\s+(?=[A-Z])|[\n\r]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 3)
+}
+
+function StructuredDescription({ raw }: { raw: string }) {
+  const sections = splitIntoSections(raw)
+
+  // Intro block = text before the first section header
+  const firstPos = raw.search(
+    /what.?s included in this decoration package|what.?s included|included in this|important notes?|setup (?:guidelines?|notes?|info)|cancellation/i
+  )
+  const intro = firstPos > 0 ? raw.slice(0, firstPos).trim() : ''
+
+  if (sections.length === 0) {
+    return (
+      <div className="text-sm leading-relaxed text-burgundy-700 mb-6">
+        <p>{raw}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3 mb-6">
+      {/* Intro paragraph if any */}
+      {intro && (
+        <p className="text-sm leading-relaxed text-burgundy-700">{intro}</p>
+      )}
+
+      {sections.map((sec, i) => {
+        const items = bodyToItems(sec.body)
+        // Alternate between two burgundy shades for visual separation
+        const isAlt = i % 2 === 1
+        return (
+          <div
+            key={i}
+            className={`rounded-xl border border-burgundy-200 px-4 py-3 ${isAlt ? 'bg-burgundy-50/60' : 'bg-white'}`}
+          >
+            {/* Section header */}
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-burgundy-700 mb-2">
+              {sec.icon}
+              {sec.title}
+            </div>
+            {/* Items */}
+            <ul className="space-y-1">
+              {items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-[13px] leading-snug text-burgundy-800">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-burgundy-400" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 
 export function ProductDetailPage() {
   const { id } = useParams()
@@ -107,9 +232,6 @@ export function ProductDetailPage() {
 
   const allImages = [product.image_url, ...(product.gallery_images || [])].filter(Boolean) as string[]
 
-  const isEventDecor = EVENT_DECOR_SUBPAGES.map(s => s.slug).includes(product.category) || product.category === 'event-and-decor'
-  const isCustomQuote = !product.price || product.price === 0
-
   const handleAdd = () => {
     addItem({ id: product.id, name: product.name, price: product.price, image_url: product.image_url ?? undefined, category: product.category })
     setAdded(true)
@@ -127,10 +249,6 @@ export function ProductDetailPage() {
     navigate('/checkout')
   }
 
-  const handleEnquire = () => {
-    window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: product.category, notes: `I would like to enquire about: ${product.name}` } }))
-  }
-
   return (
     <div className="bg-[#faf6f3] min-h-screen pb-20">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
@@ -142,11 +260,11 @@ export function ProductDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
           {/* Images Section */}
           <div className="flex flex-col gap-4">
-            <div className="aspect-[4/3] w-full rounded-3xl overflow-hidden bg-white shadow-soft">
+            <div className="aspect-[4/3] w-full rounded-3xl overflow-hidden bg-[#f7f1ee] shadow-soft">
               <img 
                 src={productImageSource(activeImage, product.id, product.category)} 
                 alt={product.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain bg-[#f7f1ee]"
                 onError={(e) => applyImageFallback(e, imageFallbackSource(product.id, product.category))}
               />
             </div>
@@ -162,7 +280,7 @@ export function ProductDetailPage() {
                     <img 
                       src={productImageSource(img, product.id, product.category)} 
                       alt={`Thumbnail ${idx + 1}`}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain bg-[#f7f1ee]"
                       onError={(e) => applyImageFallback(e, imageFallbackSource(product.id, product.category))}
                     />
                   </button>
@@ -178,42 +296,30 @@ export function ProductDetailPage() {
             </span>
             <h1 className="font-serif text-4xl md:text-5xl text-burgundy-950 leading-tight mb-4">{product.name}</h1>
             
-            {(!isEventDecor && !isCustomQuote) && (
+            {product.price > 0 && (
               <p className="font-serif text-3xl text-burgundy-800 mb-6">₹{product.price.toLocaleString('en-IN')}</p>
             )}
 
-            <div className="prose prose-burgundy max-w-none text-burgundy-700 text-sm md:text-base leading-relaxed mb-8">
-              <p>{product.description}</p>
-            </div>
+            {/* Structured Description */}
+            <StructuredDescription raw={product.description ?? ''} />
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-auto">
-              {(isEventDecor || isCustomQuote) ? (
-                <button
-                  onClick={handleEnquire}
-                  className="flex-1 bg-burgundy-800 text-white rounded-full py-4 px-8 font-medium hover:bg-burgundy-700 transition shadow-md"
-                >
-                  Enquire Now
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handleAdd}
-                    className={`flex-1 flex items-center justify-center gap-2 rounded-full py-4 px-8 font-medium transition shadow-md ${
-                      added ? 'bg-green-600 text-white' : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
-                    }`}
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {added ? 'Added to Cart' : 'Add to Cart'}
-                  </button>
-                  <button
-                    onClick={handleBuyNow}
-                    className="flex-1 flex items-center justify-center gap-2 bg-white border border-burgundy-800 text-burgundy-800 rounded-full py-4 px-8 font-medium hover:bg-burgundy-50 transition shadow-sm"
-                  >
-                    <CreditCard className="h-5 w-5" />
-                    Pay Now
-                  </button>
-                </>
-              )}
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <button
+                onClick={handleAdd}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-full py-4 px-8 font-medium transition shadow-md ${
+                  added ? 'bg-green-600 text-white' : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                }`}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {added ? 'Added to Cart ✓' : 'Add to Cart'}
+              </button>
+              <button
+                onClick={handleBuyNow}
+                className="flex-1 flex items-center justify-center gap-2 bg-white border border-burgundy-800 text-burgundy-800 rounded-full py-4 px-8 font-medium hover:bg-burgundy-50 transition shadow-sm"
+              >
+                <CreditCard className="h-5 w-5" />
+                Pay Now
+              </button>
             </div>
           </div>
         </div>
@@ -272,10 +378,6 @@ export function ProductDetailPage() {
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                   {similarProducts.map((p) => {
-                    const pIsEventDecor = EVENT_DECOR_SUBPAGES.map(s => s.slug).includes(p.category) || p.category === 'event-and-decor'
-                    const pIsCustomQuote = !p.price || p.price === 0
-                    const showPrice = !pIsEventDecor && !pIsCustomQuote
-
                     return (
                       <article
                         key={p.id}
@@ -286,7 +388,7 @@ export function ProductDetailPage() {
                           <img
                             src={productImageSource(p.image_url, p.id, p.category)}
                             alt={p.name}
-                            className="w-full h-full object-contain transition duration-500 group-hover:scale-110 bg-burgundy-50/10"
+                            className="w-full h-full object-contain transition duration-500 group-hover:scale-110 bg-[#f7f1ee]"
                             loading="lazy"
                             onError={(e) => applyImageFallback(e, imageFallbackSource(p.id, p.category))}
                           />
@@ -304,33 +406,24 @@ export function ProductDetailPage() {
                             </h3>
                           </Link>
 
-                          {showPrice && (
-                            <p className="font-serif text-lg text-burgundy-800 font-medium mt-auto">
+                          {p.price > 0 && (
+                            <p className="font-serif text-base text-burgundy-800 font-medium mt-auto">
                               ₹{p.price.toLocaleString('en-IN')}
                             </p>
                           )}
 
                           {/* Action button */}
                           <div className="mt-2">
-                            {(pIsEventDecor || pIsCustomQuote) ? (
-                              <Link
-                                to={`/product/${p.id}`}
-                                className="block w-full text-center rounded-full px-3 py-2 text-xs font-medium bg-burgundy-50 text-burgundy-800 hover:bg-burgundy-100 transition"
-                              >
-                                View Details
-                              </Link>
-                            ) : (
-                              <button
-                                onClick={() => handleAddSimilar(p)}
-                                className={`w-full rounded-full px-3 py-2 text-xs font-medium transition ${
-                                  addedSimilarId === p.id
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
-                                }`}
-                              >
-                                {addedSimilarId === p.id ? '✓ Added' : 'Add to Cart'}
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleAddSimilar(p)}
+                              className={`w-full rounded-full px-3 py-2 text-xs font-medium transition ${
+                                addedSimilarId === p.id
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                              }`}
+                            >
+                              {addedSimilarId === p.id ? '✓ Added' : 'Add to Cart'}
+                            </button>
                           </div>
                         </div>
                       </article>

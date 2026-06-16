@@ -410,15 +410,39 @@ export function ProductsPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Description</label>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-xs font-medium text-gray-600">Description</label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm(prev => ({
+                        ...prev,
+                        description: prev.description
+                          ? prev.description
+                          : `What's Included in This Decoration Package: Customized name backdrop. Balloon arch. Sunboard cutout. Cake table.\n\nImportant Notes: The images shown are for reference purposes only. Actual setup may vary slightly in shape, color, or design depending on availability.\n\nSetup Guidelines: The decorator can wait for a maximum of 30 minutes at the venue. A stool or ladder must be provided by the customer.\n\nCancellation & Complaint Policy: Any complaints must be reported within 2 hours of the scheduled delivery time. No rescheduling or cancellation is allowed once the decoration process has been initiated.`,
+                      }))
+                    }
+                    className="rounded-full border border-burgundy-200 bg-burgundy-50 px-2.5 py-1 text-[10px] font-medium text-burgundy-700 transition hover:bg-burgundy-100"
+                  >
+                    + Fill Template
+                  </button>
+                </div>
                 <textarea
                   name="description"
                   value={form.description}
                   onChange={handleChange}
-                  rows={3}
-                  placeholder="Short product description…"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-burgundy-300 focus:outline-none focus:ring-2 focus:ring-burgundy-100"
+                  rows={8}
+                  placeholder={`What's Included in This Decoration Package: ...\n\nImportant Notes: ...\n\nSetup Guidelines: ...\n\nCancellation & Complaint Policy: ...`}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-burgundy-300 focus:outline-none focus:ring-2 focus:ring-burgundy-100 font-mono"
                 />
+                {/* Section guide */}
+                <div className="mt-2 rounded-xl border border-burgundy-100 bg-burgundy-50/50 px-3 py-2 text-[11px] text-burgundy-600 space-y-0.5">
+                  <p className="font-semibold text-burgundy-700 mb-1">📋 Structured Sections (auto-detected on product page):</p>
+                  <p>• <span className="font-medium">What's Included in This Decoration Package:</span> item1. item2.</p>
+                  <p>• <span className="font-medium">Important Notes:</span> note1. note2.</p>
+                  <p>• <span className="font-medium">Setup Guidelines:</span> guideline1. guideline2.</p>
+                  <p>• <span className="font-medium">Cancellation &amp; Complaint Policy:</span> policy text.</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -473,7 +497,7 @@ export function ProductsPage() {
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="h-40 w-full object-cover"
+                      className="h-40 w-full object-contain bg-[#f7f1ee]"
                     />
                     <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition flex items-center justify-center opacity-0 hover:opacity-100">
                       <button

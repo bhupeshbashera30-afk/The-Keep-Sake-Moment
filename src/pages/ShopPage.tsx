@@ -102,7 +102,7 @@ export function ShopPage() {
                       <img
                         src={productImageSource(product.image_url, product.id, product.category)}
                         alt={product.name}
-                        className="h-28 w-full object-contain transition duration-500 group-hover:scale-105 sm:h-36 md:h-52 bg-burgundy-50/10"
+                        className="h-28 w-full object-contain transition duration-500 group-hover:scale-105 sm:h-36 md:h-52 bg-[#f7f1ee]"
                         loading="lazy"
                         width={600}
                         height={400}
@@ -115,9 +115,7 @@ export function ShopPage() {
                     <Link to={`/product/${product.id}`} className="group-hover:opacity-80">
                       <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{product.name}</h3>
                     </Link>
-                    <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed md:line-clamp-none">
-                      {product.description}
-                    </p>
+
                     <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-between md:gap-3">
                       <span className="font-serif text-sm text-burgundy-900 md:text-2xl">
                         ₹{product.price.toLocaleString('en-IN')}
