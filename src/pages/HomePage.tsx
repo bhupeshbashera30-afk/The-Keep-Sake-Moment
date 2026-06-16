@@ -209,7 +209,7 @@ export function HomePage() {
                         srcSet={cat.image.includes('unsplash.com') ? `${cat.image.replace('w=600', 'w=300').replace('q=80', 'q=60')} 300w, ${cat.image} 600w` : undefined}
                         sizes="(max-width: 768px) 300px, 600px"
                         alt={cat.label}
-                        className="h-full w-full object-contain transition duration-700 group-hover:scale-110 bg-burgundy-50/20"
+                        className="h-full w-full object-contain transition duration-700 group-hover:scale-110 bg-[#f7f1ee]"
                         loading="lazy"
                       />
                     )}
@@ -326,7 +326,7 @@ export function HomePage() {
                         <img
                           src={productImageSource(product.image_url, product.id, product.category)}
                           alt={product.name}
-                          className="h-28 w-full object-contain transition duration-500 group-hover:scale-105 bg-burgundy-50/10"
+                          className="h-28 w-full object-contain transition duration-500 group-hover:scale-105 bg-[#f7f1ee]"
                           loading="lazy"
                           onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
                         />
@@ -371,7 +371,7 @@ export function HomePage() {
                         <img
                           src={productImageSource(product.image_url, product.id, product.category)}
                           alt={product.name}
-                          className="h-36 w-full object-contain transition duration-500 group-hover:scale-105 bg-burgundy-50/10"
+                          className="h-36 w-full object-contain transition duration-500 group-hover:scale-105 bg-[#f7f1ee]"
                           loading="lazy"
                           onError={(event) => applyImageFallback(event, imageFallbackSource(product.id, product.category))}
                         />

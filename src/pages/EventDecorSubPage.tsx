@@ -167,7 +167,7 @@ export function EventDecorSubPage() {
                         <img
                           src={categoryImages[sub.slug]}
                           alt={sub.label}
-                          className="h-full w-full object-contain transition duration-700 group-hover:scale-110 bg-burgundy-50/20"
+                          className="h-full w-full object-contain transition duration-700 group-hover:scale-110 bg-[#f7f1ee]"
                           loading="lazy"
                         />
                       ) : (
@@ -205,12 +205,12 @@ export function EventDecorSubPage() {
             <ScrollReveal stagger>
               <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
                 {items.map((item) => (
-                  <article key={item.id} className="card-lift flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-[2rem] md:p-8">
-                    <Link to={`/product/${item.id}`} className="relative mb-3 block overflow-hidden rounded-lg md:mb-5 md:rounded-2xl">
+                  <article key={item.id} className="card-lift flex flex-col rounded-xl border border-burgundy-100 bg-white p-2.5 shadow-soft md:rounded-[2rem] md:p-6">
+                    <Link to={`/product/${item.id}`} className="relative mb-3 block overflow-hidden rounded-lg md:mb-4 md:rounded-2xl">
                       <img
                         src={item.image_url ?? item.hero_image ?? imageFallbackSource(item.id, subslug)}
                         alt={item.name}
-                        className="h-28 w-full object-contain sm:h-36 md:h-52 bg-burgundy-50/10"
+                        className="h-28 w-full object-contain sm:h-36 md:h-52 bg-[#f7f1ee]"
                         loading="lazy"
                         onError={(event) => applyImageFallback(event, imageFallbackSource(item.id, subslug))}
                       />
@@ -221,17 +221,30 @@ export function EventDecorSubPage() {
                     <Link to={`/product/${item.id}`} className="group-hover:opacity-80">
                       <h3 className="font-serif text-xs leading-snug text-burgundy-950 line-clamp-2 md:text-xl">{item.name}</h3>
                     </Link>
-                    <p className="mt-1 flex-1 text-[11px] leading-5 text-burgundy-600 line-clamp-3 md:mt-1.5 md:text-sm md:leading-relaxed">{item.description}</p>
-                    <div className="mt-3 flex flex-col gap-2 md:mt-5 md:flex-row md:items-center md:justify-end md:gap-3">
+                    {item.price > 0 && (
+                      <p className="mt-1 font-serif text-sm font-medium text-burgundy-800 md:text-lg">
+                        ₹{item.price.toLocaleString('en-IN')}
+                      </p>
+                    )}
+
+                    <div className="mt-3 flex flex-col gap-2 md:mt-4">
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.dispatchEvent(new CustomEvent('open-enquiry', { detail: { service: 'Event & Decor', notes: `I would like to enquire about: ${item.name}` } }));
-                        }}
-                        className="rounded-full px-3 py-1.5 text-[11px] font-medium transition md:px-5 md:py-2.5 md:text-sm bg-burgundy-800 text-white hover:bg-burgundy-700"
+                        onClick={(e) => { e.preventDefault(); handleAdd(item); }}
+                        className={`w-full rounded-full py-2 text-[11px] font-medium transition md:py-2.5 md:text-sm flex items-center justify-center gap-1.5 ${
+                          addedId === item.id
+                            ? 'bg-green-600 text-white'
+                            : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                        }`}
                       >
-                        Enquire Now
+                        {addedId === item.id ? '✓ Added to Cart' : '🛒 Add to Cart'}
                       </button>
+                      <Link
+                        to="/checkout"
+                        onClick={(e) => { handleAdd(item); }}
+                        className="w-full rounded-full border border-burgundy-800 py-2 text-[11px] font-medium text-burgundy-800 transition hover:bg-burgundy-50 md:py-2.5 md:text-sm flex items-center justify-center gap-1.5"
+                      >
+                        💳 Pay Now
+                      </Link>
                     </div>
                   </article>
                 ))}
