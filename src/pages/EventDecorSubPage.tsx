@@ -116,8 +116,8 @@ export function EventDecorSubPage() {
               <Link
                 to="/services/event-and-decor/all"
                 className={`rounded-full border px-4 py-2 text-sm transition ${subslug === ALL_SLUG
-                    ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.28)]'
-                    : 'border-burgundy-200 bg-white text-burgundy-700 hover:border-burgundy-500 hover:text-burgundy-900'
+                  ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.28)]'
+                  : 'border-burgundy-200 bg-white text-burgundy-700 hover:border-burgundy-500 hover:text-burgundy-900'
                   }`}
               >
                 All
@@ -127,8 +127,8 @@ export function EventDecorSubPage() {
                   key={sub.slug}
                   to={`/services/event-and-decor/${sub.slug}`}
                   className={`rounded-full border px-4 py-2 text-sm transition ${sub.slug === subslug
-                      ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.28)]'
-                      : 'border-burgundy-200 bg-white text-burgundy-700 hover:border-burgundy-500 hover:text-burgundy-900'
+                    ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.28)]'
+                    : 'border-burgundy-200 bg-white text-burgundy-700 hover:border-burgundy-500 hover:text-burgundy-900'
                     }`}
                 >
                   {sub.label}
@@ -230,11 +230,10 @@ export function EventDecorSubPage() {
                     <div className="mt-3 flex flex-col gap-2 md:mt-4">
                       <button
                         onClick={(e) => { e.preventDefault(); handleAdd(item); }}
-                        className={`w-full rounded-full py-2 text-[11px] font-medium transition md:py-2.5 md:text-sm flex items-center justify-center gap-1.5 ${
-                          addedId === item.id
+                        className={`w-full rounded-full py-2 text-[11px] font-medium transition md:py-2.5 md:text-sm flex items-center justify-center gap-1.5 ${addedId === item.id
                             ? 'bg-green-600 text-white'
                             : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
-                        }`}
+                          }`}
                       >
                         {addedId === item.id ? '✓ Added to Cart' : '🛒 Add to Cart'}
                       </button>

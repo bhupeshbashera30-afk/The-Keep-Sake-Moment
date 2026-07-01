@@ -64,3 +64,21 @@ export type Profile = {
   role: 'admin' | 'user'
   created_at: string
 }
+
+export type Booking = {
+  id: string
+  product_id: string
+  order_id: string | null
+  booking_date: string
+  time_slot: string
+  customer_name: string
+  email: string | null
+  phone: string
+  whatsapp: string | null
+  num_people: number
+  addons: Array<{ id: string; name: string; price: number }>
+  addons_total: number
+  payment_status: 'pending' | 'paid' | 'failed'
+  booking_status: 'pending' | 'contacted' | 'cancelled'
+  created_at: string
+}

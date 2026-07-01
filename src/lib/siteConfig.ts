@@ -188,6 +188,58 @@ export function serviceCategoryBySlug(slug: string) {
   return SERVICE_CATEGORIES.find((category) => category.slug === slug)
 }
 
+// ── Booking Flow Constants ───────────────────────────────────
+// Categories that use the date/time slot booking flow (instead of simple cart checkout)
+export const BOOKING_CATEGORIES = new Set([
+  'birthday',
+  'anniversary',
+  'proposal',
+  'corporate',
+  'special-occasion',
+  'dinner-night',
+  'event-and-decor',
+])
+
+export const TIME_SLOTS = [
+  { id: '10-12', label: '10:00 AM – 12:00 PM', start: '10:00', end: '12:00' },
+  { id: '12-14', label: '12:00 PM – 2:00 PM', start: '12:00', end: '14:00' },
+  { id: '14-16', label: '2:00 PM – 4:00 PM', start: '14:00', end: '16:00' },
+  { id: '16-18', label: '4:00 PM – 6:00 PM', start: '16:00', end: '18:00' },
+  { id: '18-20', label: '6:00 PM – 8:00 PM', start: '18:00', end: '20:00' },
+  { id: '20-22', label: '8:00 PM – 10:00 PM', start: '20:00', end: '22:00' },
+]
+
+export type AddOn = {
+  id: string
+  name: string
+  emoji: string
+  price: number
+  description: string
+}
+
+export const ADDONS: AddOn[] = [
+  { id: 'cake', name: 'Cake', emoji: '🎂', price: 500, description: 'Designer celebration cake' },
+  { id: 'bouquet', name: 'Bouquet', emoji: '💐', price: 300, description: 'Fresh flower bouquet' },
+  { id: 'photo-magazine', name: 'Photo Magazine', emoji: '📸', price: 800, description: 'Printed photo keepsake magazine' },
+  { id: 'iphone-shoot', name: 'iPhone Shoot', emoji: '📱', price: 1000, description: 'Professional iPhone photography' },
+  { id: 'reels-photo', name: 'Reels + Photo', emoji: '🎬', price: 1500, description: 'Instagram reels & professional photos' },
+]
+
+export const TERMS_AND_CONDITIONS = [
+  'Booking is confirmed only after full payment is received.',
+  'Cancellations must be made at least 48 hours before the event for a full refund.',
+  'Cancellations within 24–48 hours will receive a 50% refund.',
+  'No refunds for cancellations within 24 hours of the event.',
+  'Add-on items are non-refundable once preparation has started.',
+  'The venue/setup time may vary by ±30 minutes depending on logistics.',
+  'Keepsake Moments reserves the right to modify decor elements based on availability while maintaining the overall theme.',
+  'Any damages to the setup or venue caused by guests will be the customer\'s responsibility.',
+]
+
+export function isBookingCategory(category: string): boolean {
+  return BOOKING_CATEGORIES.has(category)
+}
+
 export function eventDecorSubpageBySlug(slug: string) {
   return EVENT_DECOR_SUBPAGES.find((subpage) => subpage.slug === slug)
 }

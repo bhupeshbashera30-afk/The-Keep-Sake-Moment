@@ -158,13 +158,14 @@ export function OverviewPage() {
       if (!supabase) { setLoading(false); return }
 
       const [ordersRes, productsRes, bookingRes, contactRes] = await Promise.all([
-        supabase.from('orders').select('id,customer_name,email,phone,total,payment_status,order_status,created_at').order('created_at', { ascending: false }),
+        supabase.from('orders').select('id,customer_name,email,phone,total,payment_status,order_status,created_at,address').order('created_at', { ascending: false }),
         supabase.from('products').select('id,is_active,category'),
         supabase.from('booking_requests').select('id,full_name,email,phone,service_interest,created_at').order('created_at', { ascending: false }).limit(8),
         supabase.from('contact_submissions').select('id,full_name,email,phone,subject,created_at').order('created_at', { ascending: false }).limit(8),
       ])
 
-      const orders = ((ordersRes.data ?? []) as Order[])
+      const rawOrders = ((ordersRes.data ?? []) as (Order & { address?: string | null })[])
+      const orders = rawOrders.filter(order => !order.address?.startsWith('Booking:'))
       const products = productsRes.data ?? []
       const shopCategoryKeys = new Set(SHOP_CATEGORIES.map((category) => category.key))
       const serviceProducts = products.filter((product: any) => !shopCategoryKeys.has(product.category))

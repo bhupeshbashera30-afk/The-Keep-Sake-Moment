@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, ShoppingCart, CreditCard, CheckCircle2, AlertCircle, Settings, XCircle, Package } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart, CreditCard, CheckCircle2, AlertCircle, Settings, XCircle, Package, Calendar, Clock, Check } from 'lucide-react'
 import { supabase, type Product } from '../lib/supabase'
 import { applyImageFallback, imageFallbackSource, productImageSource } from '../lib/imageFallbacks'
 import { useCart } from '../context/CartContext'
 import { ScrollReveal } from '../components/ScrollReveal'
-import { EVENT_DECOR_SUBPAGES } from '../lib/siteConfig'
+import { EVENT_DECOR_SUBPAGES, isBookingCategory, TIME_SLOTS } from '../lib/siteConfig'
+import { useBookingSlots } from '../hooks/useBookingSlots'
 
 // ── Structured Description ──────────────────────────────────────────────────
 // Parses the raw description into labeled sections using known keywords.
@@ -135,16 +136,33 @@ function StructuredDescription({ raw }: { raw: string }) {
 export function ProductDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { addItem } = useCart()
+  const { addItem, setBookingMeta } = useCart()
   const [added, setAdded] = useState(false)
 
   const [product, setProduct] = useState<Product | null>(null)
   const [similarProducts, setSimilarProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [addedSimilarId, setAddedSimilarId] = useState<string | null>(null)
+
+  // Booking time slot state
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   
   // For multiple images support
   const [activeImage, setActiveImage] = useState<string | null>(null)
+
+  // Mini calendar for booking products state (must be defined before early returns)
+  const calendarToday = new Date()
+  const [calViewYear, setCalViewYear] = useState(calendarToday.getFullYear())
+  const [calViewMonth, setCalViewMonth] = useState(calendarToday.getMonth())
+
+  const isBooking = product ? isBookingCategory(product.category) : false
+
+  // Fetch slots for the selected date (only for booking products)
+  const { slots, loading: slotsLoading } = useBookingSlots(
+    isBooking && product ? product.id : undefined,
+    selectedDate
+  )
 
   // Similar products carousel ref
   const similarScrollRef = useRef<HTMLDivElement>(null)
@@ -249,6 +267,33 @@ export function ProductDetailPage() {
     navigate('/checkout')
   }
 
+  const handleBookNow = () => {
+    const slotLabel = TIME_SLOTS.find(s => s.id === selectedSlot)?.label || ''
+    setBookingMeta({
+      productId: product.id,
+      productName: product.name,
+      productPrice: product.price,
+      bookingDate: selectedDate!,
+      timeSlot: selectedSlot!,
+      timeSlotLabel: slotLabel,
+      addons: [],
+      addonsTotal: 0,
+      numPeople: 1,
+      category: product.category,
+      image_url: product.image_url ?? undefined,
+    })
+    navigate('/checkout')
+  }
+
+  // Mini calendar for booking products (inline version)
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const calFirstDay = new Date(calViewYear, calViewMonth, 1).getDay()
+  const calDaysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate()
+  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const DAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  const isPastMonth = calViewYear < today.getFullYear() || (calViewYear === today.getFullYear() && calViewMonth < today.getMonth())
+
   return (
     <div className="bg-[#faf6f3] min-h-screen pb-20">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
@@ -303,27 +348,190 @@ export function ProductDetailPage() {
             {/* Structured Description */}
             <StructuredDescription raw={product.description ?? ''} />
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-6">
-              <button
-                onClick={handleAdd}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-full py-4 px-8 font-medium transition shadow-md ${
-                  added ? 'bg-green-600 text-white' : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
-                }`}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {added ? 'Added to Cart ✓' : 'Add to Cart'}
-              </button>
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 flex items-center justify-center gap-2 bg-white border border-burgundy-800 text-burgundy-800 rounded-full py-4 px-8 font-medium hover:bg-burgundy-50 transition shadow-sm"
-              >
-                <CreditCard className="h-5 w-5" />
-                Pay Now
-              </button>
-            </div>
+            {/* Action buttons: different for booking vs regular products */}
+            {isBooking ? (
+              <div className="mt-6">
+                <button
+                  onClick={handleBookNow}
+                  disabled={!selectedDate || !selectedSlot}
+                  className="w-full flex items-center justify-center gap-2 rounded-full py-4 px-8 font-medium transition shadow-md bg-burgundy-800 text-white hover:bg-burgundy-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Calendar className="h-5 w-5" />
+                  {selectedDate && selectedSlot ? 'Book Now →' : 'Select Date & Time Below to Book'}
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                <button
+                  onClick={handleAdd}
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-full py-4 px-8 font-medium transition shadow-md ${
+                    added ? 'bg-green-600 text-white' : 'bg-burgundy-800 text-white hover:bg-burgundy-700'
+                  }`}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {added ? 'Added to Cart ✓' : 'Add to Cart'}
+                </button>
+                <button
+                  onClick={handleBuyNow}
+                  className="flex-1 flex items-center justify-center gap-2 bg-white border border-burgundy-800 text-burgundy-800 rounded-full py-4 px-8 font-medium hover:bg-burgundy-50 transition shadow-sm"
+                >
+                  <CreditCard className="h-5 w-5" />
+                  Pay Now
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* ── Time Slots Section (for booking products) ─────────── */}
+      {isBooking && (
+        <section className="mt-8 border-t border-burgundy-100 pt-10 pb-4">
+          <div className="mx-auto max-w-7xl px-4 md:px-8">
+            <ScrollReveal direction="up">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-burgundy-100">
+                  <Clock className="h-5 w-5 text-burgundy-700" />
+                </div>
+                <div>
+                  <h2 className="font-serif text-2xl md:text-3xl text-burgundy-950">Check Availability</h2>
+                  <p className="text-sm text-burgundy-500">Select a date to see available time slots</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                {/* Calendar */}
+                <div className="rounded-2xl border border-burgundy-100 bg-white p-5 shadow-soft">
+                  {/* Calendar header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() => { if (calViewMonth === 0) { setCalViewYear(y => y - 1); setCalViewMonth(11) } else setCalViewMonth(m => m - 1) }}
+                      disabled={isPastMonth}
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-burgundy-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="h-4 w-4 text-burgundy-600" />
+                    </button>
+                    <span className="font-serif text-lg text-burgundy-950">
+                      {MONTH_NAMES[calViewMonth]} {calViewYear}
+                    </span>
+                    <button
+                      onClick={() => { if (calViewMonth === 11) { setCalViewYear(y => y + 1); setCalViewMonth(0) } else setCalViewMonth(m => m + 1) }}
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-burgundy-50"
+                    >
+                      <ChevronRight className="h-4 w-4 text-burgundy-600" />
+                    </button>
+                  </div>
+
+                  {/* Day names */}
+                  <div className="grid grid-cols-7 mb-2">
+                    {DAY_NAMES.map(d => (
+                      <div key={d} className="text-center text-xs font-medium text-burgundy-400 py-1">{d}</div>
+                    ))}
+                  </div>
+
+                  {/* Days grid */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {Array.from({ length: calFirstDay }).map((_, i) => (
+                      <div key={`empty-${i}`} className="h-9" />
+                    ))}
+                    {Array.from({ length: calDaysInMonth }).map((_, i) => {
+                      const day = i + 1
+                      const dateStr = `${calViewYear}-${String(calViewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                      const isPast = dateStr < todayStr
+                      const isSelected = dateStr === selectedDate
+                      const isToday = dateStr === todayStr
+
+                      return (
+                        <button
+                          key={day}
+                          onClick={() => { if (!isPast) { setSelectedDate(dateStr); setSelectedSlot(null) } }}
+                          disabled={isPast}
+                          className={`
+                            h-9 w-full rounded-lg text-sm font-medium transition-all duration-200
+                            ${isSelected
+                              ? 'bg-burgundy-800 text-white shadow-[0_2px_8px_rgba(91,33,49,0.3)] scale-105'
+                              : isPast
+                                ? 'text-burgundy-200 cursor-not-allowed'
+                                : isToday
+                                  ? 'bg-burgundy-50 text-burgundy-900 hover:bg-burgundy-100 ring-1 ring-burgundy-200'
+                                  : 'text-burgundy-700 hover:bg-burgundy-50'
+                            }
+                          `}
+                        >
+                          {day}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Time Slots */}
+                <div>
+                  {!selectedDate ? (
+                    <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-burgundy-100 bg-white p-10 text-center">
+                      <div>
+                        <Calendar className="mx-auto mb-3 h-10 w-10 text-burgundy-200" />
+                        <p className="text-sm text-burgundy-400">Select a date to view available time slots</p>
+                      </div>
+                    </div>
+                  ) : slotsLoading ? (
+                    <div className="grid grid-cols-1 gap-3">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-14 animate-pulse rounded-xl bg-burgundy-50" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-burgundy-700 mb-3">
+                        {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                      {slots.map(slot => (
+                        <button
+                          key={slot.id}
+                          onClick={() => slot.status === 'available' && setSelectedSlot(slot.id)}
+                          disabled={slot.status === 'booked'}
+                          className={`
+                            w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all duration-200
+                            ${slot.status === 'booked'
+                              ? 'border-red-100 bg-red-50/60 text-red-300 cursor-not-allowed'
+                              : selectedSlot === slot.id
+                                ? 'border-burgundy-800 bg-burgundy-800 text-white shadow-[0_4px_16px_rgba(91,33,49,0.25)]'
+                                : 'border-burgundy-100 bg-white text-burgundy-700 hover:border-burgundy-300 hover:shadow-soft'
+                            }
+                          `}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{slot.label}</span>
+                            {slot.status === 'booked' && (
+                              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-500 uppercase tracking-wider">
+                                Booked
+                              </span>
+                            )}
+                            {selectedSlot === slot.id && slot.status === 'available' && (
+                              <Check className="h-4 w-4" />
+                            )}
+                          </div>
+                        </button>
+                      ))}
+
+                      {/* Book Now CTA */}
+                      {selectedSlot && (
+                        <button
+                          onClick={handleBookNow}
+                          className="mt-4 w-full flex items-center justify-center gap-2 rounded-full bg-burgundy-800 py-3.5 text-sm font-medium text-white transition hover:bg-burgundy-700 shadow-[0_4px_16px_rgba(91,33,49,0.25)]"
+                        >
+                          <CreditCard className="h-4 w-4" />
+                          Book Now — ₹{product.price.toLocaleString('en-IN')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+      )}
 
       {/* ── Similar Products Carousel ────────────────────────── */}
       {similarProducts.length > 0 && (
