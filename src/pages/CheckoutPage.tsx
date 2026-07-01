@@ -311,7 +311,7 @@ export function CheckoutPage() {
         ...selectedAddonsList.map(a => ({ id: a.id, name: a.name, price: a.price, qty: 1 })),
       ]
 
-      const { data: insertedRows, error: orderError } = await supabase
+      const { data: insertedRows, error: orderError } = await supabase!
         .from('orders')
         .insert({
           customer_name: bookingForm.customer_name,
@@ -331,7 +331,7 @@ export function CheckoutPage() {
       const orderId = insertedRows[0].id
 
       // Step 2: Create booking record
-      const { error: bookingError } = await supabase
+      const { error: bookingError } = await supabase!
         .from('bookings')
         .insert({
           product_id: bookingProduct.id,
@@ -390,7 +390,7 @@ export function CheckoutPage() {
               })
 
               // Mark booking as paid
-              await supabase
+              await supabase!
                 .from('bookings')
                 .update({ payment_status: 'paid' })
                 .eq('order_id', orderId)
@@ -412,8 +412,8 @@ export function CheckoutPage() {
         rzp.open()
       } else {
         // Dev mode: skip Razorpay
-        await supabase.from('orders').update({ payment_status: 'paid', order_status: 'confirmed' }).eq('id', orderId)
-        await supabase.from('bookings').update({ payment_status: 'paid' }).eq('order_id', orderId)
+        await supabase!.from('orders').update({ payment_status: 'paid', order_status: 'confirmed' }).eq('id', orderId)
+        await supabase!.from('bookings').update({ payment_status: 'paid' }).eq('order_id', orderId)
         clearCart()
         navigate('/order-success?id=' + orderId)
         setLoading(false)
@@ -433,7 +433,7 @@ export function CheckoutPage() {
     setErrorMsg(null)
 
     try {
-      const { data: insertedRows, error: orderError } = await supabase
+      const { data: insertedRows, error: orderError } = await supabase!
         .from('orders')
         .insert({
           customer_name: regularForm.customer_name,
@@ -502,7 +502,7 @@ export function CheckoutPage() {
         })
         rzp.open()
       } else {
-        await supabase.from('orders').update({ payment_status: 'paid', order_status: 'confirmed' }).eq('id', orderId)
+        await supabase!.from('orders').update({ payment_status: 'paid', order_status: 'confirmed' }).eq('id', orderId)
         clearCart()
         navigate('/order-success?id=' + orderId)
         setLoading(false)
