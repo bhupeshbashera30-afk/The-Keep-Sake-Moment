@@ -22,7 +22,10 @@ export function useOrders(search?: string) {
     }
 
     const { data } = await query
-    setOrders((data as Order[]) ?? [])
+    const shopOrders = (data as Order[] ?? []).filter(
+      order => !order.address?.startsWith('Booking:')
+    )
+    setOrders(shopOrders)
     setLoading(false)
   }, [search])
 
