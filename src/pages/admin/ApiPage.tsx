@@ -10,10 +10,37 @@ export function ApiPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
+  interface ApiKeyInfo {
+    key_name: string
+    key_value: string
+    description: string | null
+  }
+  const [apiKeys, setApiKeys] = useState<ApiKeyInfo[]>([])
+  const [loadingKeys, setLoadingKeys] = useState(false)
+
+  const fetchKeys = async () => {
+    if (!supabase) return
+    setLoadingKeys(true)
+    try {
+      const { data, error } = await supabase!
+        .from('site_keys')
+        .select('key_name,key_value,description')
+        .order('key_name', { ascending: true })
+      if (error) throw error
+      setApiKeys(data || [])
+    } catch (err: any) {
+      console.error('Error loading credentials:', err)
+      setErrorMsg(`Failed to load keys: ${err.message}`)
+    } finally {
+      setLoadingKeys(false)
+    }
+  }
+
   useEffect(() => {
     const isVerified = sessionStorage.getItem('api_portal_verified') === 'true'
     if (isVerified) {
       setVerified(true)
+      fetchKeys()
     }
   }, [])
 
@@ -70,6 +97,7 @@ export function ApiPage() {
       // Auth successful
       sessionStorage.setItem('api_portal_verified', 'true')
       setVerified(true)
+      fetchKeys()
     } catch (err: any) {
       console.error('OTP Verification error:', err)
       setErrorMsg(err.message || 'Incorrect verification code.')
@@ -89,6 +117,7 @@ export function ApiPage() {
     setVerified(false)
     setOtpSent(false)
     setCode('')
+    setApiKeys([])
   }
 
   // Verification Screen
@@ -162,45 +191,6 @@ export function ApiPage() {
     )
   }
 
-  // API Credentials Listing Screen
-  const API_KEYS = [
-    {
-      label: 'Razorpay Live Key ID',
-      val: 'rzp_live_T8XCxe7tplUewm',
-      desc: 'Used by Checkout component to initiate live customer payments.'
-    },
-    {
-      label: 'Razorpay Key Secret',
-      val: 'n2rST1X56oP77n3yBfaxKdJE',
-      desc: 'Used securely by Edge Function verify-razorpay-payment to authenticate incoming checkout signatures.'
-    },
-    {
-      label: 'Supabase Project URL',
-      val: 'https://rjrwpulvystjkcfeldpk.supabase.co',
-      desc: 'Main project reference URL connecting client to database endpoints.'
-    },
-    {
-      label: 'Supabase Public Anon Key',
-      val: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqcndwdWx2eXN0amtjZmVsZHBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3MDk2MjIsImV4cCI6MjA5MzI4NTYyMn0.DifCVn_QgyabDvken0f7J2aKsonRrzrHcTdqBxuWNSo',
-      desc: 'Public client key matching PostgREST schema definitions.'
-    },
-    {
-      label: 'Resend API Key (Full Access)',
-      val: 're_AaECeZHb_AmKFJPcSMWDFsTZj1UfHQyqS',
-      desc: 'Full-permission API token used to query support inboxes and deliver support mails.'
-    },
-    {
-      label: 'Resend Webhook Signing Secret',
-      val: 'whsec_5oY42Fd7tLog1odA+Bfq8KchXFjnMAtw',
-      desc: 'Shared cryptographic secret key validating Resend inbound email events.'
-    },
-    {
-      label: 'Support Inbound Webhook Endpoint URL',
-      val: 'https://rjrwpulvystjkcfeldpk.supabase.co/functions/v1/receive-support-email',
-      desc: 'Configure this URL in your Resend Dashboard Webhooks page for the email.received event.'
-    }
-  ]
-
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -222,32 +212,43 @@ export function ApiPage() {
       </div>
 
       {/* Keys List */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {API_KEYS.map(key => (
-          <div key={key.label} className="rounded-2xl border border-gray-150 bg-white p-5 shadow-soft flex flex-col justify-between gap-4">
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-gray-950 uppercase tracking-wide">{key.label}</h3>
-                <button
-                  onClick={() => handleCopy(key.val, key.label)}
-                  className={`p-1.5 rounded-lg border transition ${
-                    copiedKey === key.label
-                      ? 'bg-green-50 border-green-200 text-green-700'
-                      : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-                  }`}
-                >
-                  {copiedKey === key.label ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                </button>
+      {loadingKeys ? (
+        <div className="py-20 flex flex-col items-center justify-center text-gray-400">
+          <Loader2 className="h-8 w-8 animate-spin mb-2" />
+          <span className="text-sm">Fetching credentials securely…</span>
+        </div>
+      ) : apiKeys.length === 0 ? (
+        <div className="py-20 text-center text-gray-400 border border-dashed border-gray-250 rounded-2xl">
+          No keys found in database.
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {apiKeys.map(key => (
+            <div key={key.key_name} className="rounded-2xl border border-gray-150 bg-white p-5 shadow-soft flex flex-col justify-between gap-4">
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-gray-950 uppercase tracking-wide">{key.key_name.replace(/_/g, ' ')}</h3>
+                  <button
+                    onClick={() => handleCopy(key.key_value, key.key_name)}
+                    className={`p-1.5 rounded-lg border transition ${
+                      copiedKey === key.key_name
+                        ? 'bg-green-50 border-green-200 text-green-700'
+                        : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    {copiedKey === key.key_name ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-400 font-medium leading-relaxed mt-1.5">{key.description || 'Secure platform key.'}</p>
               </div>
-              <p className="text-[11px] text-gray-400 font-medium leading-relaxed mt-1.5">{key.desc}</p>
+              
+              <div className="bg-gray-50 border border-gray-150 rounded-xl p-3 select-all overflow-x-auto scrollbar-thin">
+                <span className="font-mono text-xs text-gray-700 whitespace-pre">{key.key_value}</span>
+              </div>
             </div>
-            
-            <div className="bg-gray-50 border border-gray-150 rounded-xl p-3 select-all overflow-x-auto scrollbar-thin">
-              <span className="font-mono text-xs text-gray-700 whitespace-pre">{key.val}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
