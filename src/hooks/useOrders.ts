@@ -40,5 +40,11 @@ export function useOrders(search?: string) {
     await refetch()
   }
 
-  return { orders, loading, refetch, updateOrderStatus }
+  const deleteOrder = async (id: string) => {
+    if (!supabase) return
+    await supabase.from('orders').delete().eq('id', id)
+    await refetch()
+  }
+
+  return { orders, loading, refetch, updateOrderStatus, deleteOrder }
 }

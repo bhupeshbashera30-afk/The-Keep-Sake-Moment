@@ -22,6 +22,7 @@ import { AnalyticsPage } from './pages/admin/AnalyticsPage'
 import { EventEnquiriesPage } from './pages/admin/EventEnquiriesPage'
 import { BookingsPage } from './pages/admin/BookingsPage'
 import { HomepageImagesPage } from './pages/admin/HomepageImagesPage'
+import { TrackOrderPage } from './pages/TrackOrderPage'
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/track-order" element={<TrackOrderPage />} />
           </Route>
 
           {/* Admin routes — completely outside Layout, no navbar/footer */}

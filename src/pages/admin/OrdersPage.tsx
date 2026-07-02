@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, RefreshCw, ChevronDown, ShoppingBag } from 'lucide-react'
+import { Search, RefreshCw, ChevronDown, ShoppingBag, Trash2, Mail } from 'lucide-react'
 import { useOrders, type Order } from '../../hooks/useOrders'
 
 const PAYMENT_COLORS: Record<string, string> = {
@@ -25,7 +25,7 @@ export function OrdersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
-  const { orders, loading, refetch, updateOrderStatus } = useOrders(debouncedSearch)
+  const { orders, loading, refetch, updateOrderStatus, deleteOrder } = useOrders(debouncedSearch)
 
   let debounceTimer: ReturnType<typeof setTimeout>
   const handleSearch = (val: string) => {
@@ -38,6 +38,46 @@ export function OrdersPage() {
     setUpdatingId(order.id)
     await updateOrderStatus(order.id, { order_status: newStatus as Order['order_status'] })
     setUpdatingId(null)
+  }
+
+  const handlePaymentStatusChange = async (order: Order, newPaymentStatus: string) => {
+    setUpdatingId(order.id)
+    await updateOrderStatus(order.id, { payment_status: newPaymentStatus as Order['payment_status'] })
+    setUpdatingId(null)
+  }
+
+  const handleDeleteOrder = async (id: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this order? This action cannot be undone.')
+    if (!confirmDelete) return
+    setUpdatingId(id)
+    await deleteOrder(id)
+    setUpdatingId(null)
+  }
+
+  const handleSendEmail = (order: Order) => {
+    const shortId = order.id.slice(0, 8).toUpperCase()
+    const subject = encodeURIComponent(`Order Confirmation - #${shortId} | Keepsake Moments`)
+    
+    // Format list of items
+    const itemsList = (order.products || []).map(item => `- ${item.name} (Qty: ${item.qty})`).join('\n')
+    
+    const body = encodeURIComponent(
+      `Dear ${order.customer_name},\n\n` +
+      `Thank you for your order with Keepsake Moments!\n\n` +
+      `Order Reference ID: #${shortId}\n` +
+      `Total Paid: ₹${Number(order.total).toLocaleString('en-IN')}\n` +
+      `Payment Status: ${order.payment_status.toUpperCase()}\n` +
+      `Order Status: ${order.order_status.toUpperCase()}\n\n` +
+      `Items Details:\n${itemsList}\n\n` +
+      `Delivery Address:\n${order.address || 'N/A'}\n\n` +
+      `You can track the progress of your delivery on our website anytime using the Reference ID below:\n` +
+      `Tracking ID: ${order.id}\n` +
+      `Track here: ${window.location.origin}/track-order\n\n` +
+      `Warm regards,\n` +
+      `Keepsake Moments Team`
+    )
+    
+    window.open(`mailto:${order.email || ''}?subject=${subject}&body=${body}`, '_blank')
   }
 
   return (
@@ -143,21 +183,55 @@ export function OrdersPage() {
 
                     {/* Status Update */}
                     <div>
-                      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Update Status</h4>
+                      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Update & Actions</h4>
                       <div className="space-y-3">
-                        <div>
-                          <label className="mb-1 block text-xs text-gray-500">Order Status</label>
-                          <select
-                            value={order.order_status}
-                            onChange={e => handleStatusChange(order, e.target.value)}
-                            disabled={updatingId === order.id}
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-burgundy-300 focus:outline-none focus:ring-2 focus:ring-burgundy-100 disabled:opacity-60"
-                          >
-                            {ORDER_STATUS_OPTIONS.map(s => (
-                              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-                            ))}
-                          </select>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="mb-1 block text-xs text-gray-500">Order Status</label>
+                            <select
+                              value={order.order_status}
+                              onChange={e => handleStatusChange(order, e.target.value)}
+                              disabled={updatingId === order.id}
+                              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-burgundy-300 focus:outline-none focus:ring-2 focus:ring-burgundy-100 disabled:opacity-60"
+                            >
+                              {ORDER_STATUS_OPTIONS.map(s => (
+                                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-gray-500">Payment Status</label>
+                            <select
+                              value={order.payment_status}
+                              onChange={e => handlePaymentStatusChange(order, e.target.value)}
+                              disabled={updatingId === order.id}
+                              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-burgundy-300 focus:outline-none focus:ring-2 focus:ring-burgundy-100 disabled:opacity-60"
+                            >
+                              {['pending', 'paid', 'failed', 'refunded'].map(p => (
+                                <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
+
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <button
+                            onClick={() => handleSendEmail(order)}
+                            className="flex items-center gap-1.5 rounded-xl border border-burgundy-200 bg-burgundy-50 px-3.5 py-2 text-xs font-medium text-burgundy-800 transition hover:bg-burgundy-100"
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                            Email Confirmation
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-medium text-red-800 transition hover:bg-red-100"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete Order
+                          </button>
+                        </div>
+
                         {updatingId === order.id && (
                           <p className="text-xs text-gray-400">Updating…</p>
                         )}

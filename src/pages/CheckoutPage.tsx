@@ -232,7 +232,13 @@ export function CheckoutPage() {
     customer_name: '',
     email: '',
     phone: '',
-    address: '',
+    street_address: '',
+    area: '',
+    city: '',
+    nearby: '',
+    district: 'Nainital',
+    state: 'Uttarakhand',
+    pin_code: '',
   })
 
   // Get the booking product info
@@ -432,6 +438,8 @@ export function CheckoutPage() {
     setLoading(true)
     setErrorMsg(null)
 
+    const concatenatedAddress = `${regularForm.street_address}, ${regularForm.area}, ${regularForm.city}${regularForm.nearby ? `, Nearby: ${regularForm.nearby}` : ''}, District: ${regularForm.district}, State: ${regularForm.state}, PIN: ${regularForm.pin_code}`
+
     try {
       const { data: insertedRows, error: orderError } = await supabase!
         .from('orders')
@@ -439,7 +447,7 @@ export function CheckoutPage() {
           customer_name: regularForm.customer_name,
           email: regularForm.email,
           phone: regularForm.phone,
-          address: regularForm.address,
+          address: concatenatedAddress,
           products: cart,
           total,
           payment_status: 'pending',
@@ -1059,18 +1067,114 @@ export function CheckoutPage() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="address">
-                  Delivery Address
+                <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="street_address">
+                  Delivery Address / Street *
                 </label>
-                <textarea
-                  id="address"
-                  name="address"
-                  value={regularForm.address}
+                <input
+                  id="street_address"
+                  name="street_address"
+                  type="text"
+                  value={regularForm.street_address}
                   onChange={handleRegularFormChange}
-                  rows={3}
-                  placeholder="Street, City, State, PIN"
+                  required
+                  placeholder="House/Flat No., Building, Street Name"
                   className="w-full rounded-2xl border border-burgundy-200 bg-white px-4 py-3 text-burgundy-900 placeholder:text-burgundy-300 focus:border-burgundy-400 focus:outline-none focus:ring-2 focus:ring-burgundy-100"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="area">
+                    Area / Sector *
+                  </label>
+                  <input
+                    id="area"
+                    name="area"
+                    type="text"
+                    value={regularForm.area}
+                    onChange={handleRegularFormChange}
+                    required
+                    placeholder="Sector, Colony, Area"
+                    className="w-full rounded-2xl border border-burgundy-200 bg-white px-4 py-3 text-burgundy-900 placeholder:text-burgundy-300 focus:border-burgundy-400 focus:outline-none focus:ring-2 focus:ring-burgundy-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="city">
+                    City / Town *
+                  </label>
+                  <input
+                    id="city"
+                    name="city"
+                    type="text"
+                    value={regularForm.city}
+                    onChange={handleRegularFormChange}
+                    required
+                    placeholder="City Name"
+                    className="w-full rounded-2xl border border-burgundy-200 bg-white px-4 py-3 text-burgundy-900 placeholder:text-burgundy-300 focus:border-burgundy-400 focus:outline-none focus:ring-2 focus:ring-burgundy-100"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="nearby">
+                    Near by (Landmark)
+                  </label>
+                  <input
+                    id="nearby"
+                    name="nearby"
+                    type="text"
+                    value={regularForm.nearby}
+                    onChange={handleRegularFormChange}
+                    placeholder="Nearby famous place"
+                    className="w-full rounded-2xl border border-burgundy-200 bg-white px-4 py-3 text-burgundy-900 placeholder:text-burgundy-300 focus:border-burgundy-400 focus:outline-none focus:ring-2 focus:ring-burgundy-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="pin_code">
+                    PIN Code *
+                  </label>
+                  <input
+                    id="pin_code"
+                    name="pin_code"
+                    type="text"
+                    pattern="[0-9]{6}"
+                    value={regularForm.pin_code}
+                    onChange={handleRegularFormChange}
+                    required
+                    placeholder="6-digit ZIP/PIN Code"
+                    className="w-full rounded-2xl border border-burgundy-200 bg-white px-4 py-3 text-burgundy-900 placeholder:text-burgundy-300 focus:border-burgundy-400 focus:outline-none focus:ring-2 focus:ring-burgundy-100"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="district">
+                    District *
+                  </label>
+                  <input
+                    id="district"
+                    name="district"
+                    type="text"
+                    value={regularForm.district}
+                    disabled
+                    className="w-full rounded-2xl border border-burgundy-200 bg-burgundy-50/50 px-4 py-3 text-burgundy-900 opacity-80 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm text-burgundy-600" htmlFor="state">
+                    State *
+                  </label>
+                  <input
+                    id="state"
+                    name="state"
+                    type="text"
+                    value={regularForm.state}
+                    disabled
+                    className="w-full rounded-2xl border border-burgundy-200 bg-burgundy-50/50 px-4 py-3 text-burgundy-900 opacity-80 cursor-not-allowed"
+                  />
+                </div>
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, Mail, MessageSquare, RefreshCw, Search, Phone, Users, MapPin, Tag } from 'lucide-react'
+import { CalendarDays, Mail, MessageSquare, RefreshCw, Search, Phone, Users, MapPin, Tag, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 type BookingRequest = {
@@ -49,6 +49,25 @@ export function EventEnquiriesPage() {
   }, [])
 
   useEffect(() => { refetch() }, [refetch])
+
+  const handleDeleteEnquiry = async (id: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this enquiry request? This action cannot be undone.')
+    if (!confirmDelete) return
+    setError(null)
+    if (!supabase) return
+
+    const { error: deleteError } = await supabase
+      .from('booking_requests')
+      .delete()
+      .eq('id', id)
+
+    if (deleteError) {
+      console.error(deleteError)
+      setError(deleteError.message)
+    } else {
+      await refetch()
+    }
+  }
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -170,6 +189,16 @@ export function EventEnquiriesPage() {
                     <div className="text-sm leading-relaxed text-burgundy-950/85 whitespace-pre-line">
                       {item.notes || 'No message contents provided.'}
                     </div>
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => handleDeleteEnquiry(item.id)}
+                      className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-medium text-red-800 transition hover:bg-red-100 shadow-sm"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete Enquiry
+                    </button>
                   </div>
                 </div>
               )}
