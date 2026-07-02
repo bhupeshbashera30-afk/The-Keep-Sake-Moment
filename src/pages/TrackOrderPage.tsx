@@ -107,7 +107,7 @@ export function TrackOrderPage() {
       setOrder(orderData as unknown as OrderDetails)
 
       // If it is a booking order, fetch the bookings table details as well
-      const isBooking = orderData.address?.startsWith('Booking:')
+      const isBooking = typeof orderData.address === 'string' && orderData.address.startsWith('Booking:')
       if (isBooking) {
         const { data: bookingData } = await supabase
           .from('bookings')
