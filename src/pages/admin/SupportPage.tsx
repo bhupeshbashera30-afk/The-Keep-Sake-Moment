@@ -468,7 +468,7 @@ export function SupportPage() {
         {currentSelectedThread ? (
           <>
             {/* Header / Ticket Actions */}
-            <div className="h-16 px-6 border-b border-burgundy-100 bg-white flex items-center justify-between shadow-soft/20">
+            <div className="min-h-[4.5rem] py-3 px-6 border-b border-burgundy-100 bg-white flex flex-wrap items-center justify-between gap-4 shadow-soft/20">
               <div className="min-w-0">
                 <h2 className="text-sm font-semibold text-burgundy-950 truncate">{currentSelectedThread.subject}</h2>
                 <div className="flex items-center gap-1.5 mt-0.5">
