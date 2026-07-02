@@ -20,6 +20,7 @@ type OrderDetails = {
   total: number
   payment_status: string
   order_status: string
+  short_id?: string
   created_at: string
 }
 
@@ -71,12 +72,30 @@ export function TrackOrderPage() {
     try {
       if (!supabase) throw new Error('Supabase client not initialized.')
 
-      // Query order table by UUID
-      const { data: orderData, error: orderErr } = await supabase
-        .from('orders')
-        .select('id,customer_name,email,phone,address,products,total,payment_status,order_status,created_at')
-        .eq('id', formattedId)
-        .maybeSingle()
+      // Query order table by short_id (8 chars or less) or full UUID
+      const isShortId = !formattedId.includes('-') && formattedId.length <= 8
+      const selectCols = 'id,customer_name,email,phone,address,products,total,payment_status,order_status,short_id,created_at'
+
+      let orderData: Record<string, unknown> | null = null
+      let orderErr: Error | null = null
+
+      if (isShortId) {
+        const res = await supabase
+          .from('orders')
+          .select(selectCols)
+          .eq('short_id', formattedId.toUpperCase())
+          .maybeSingle()
+        orderData = res.data as Record<string, unknown> | null
+        orderErr = res.error
+      } else {
+        const res = await supabase
+          .from('orders')
+          .select(selectCols)
+          .eq('id', formattedId)
+          .maybeSingle()
+        orderData = res.data as Record<string, unknown> | null
+        orderErr = res.error
+      }
 
       if (orderErr) throw orderErr
       if (!orderData) {
@@ -163,7 +182,7 @@ export function TrackOrderPage() {
             <div className="rounded-3xl border border-burgundy-100 bg-white p-6 shadow-soft flex flex-wrap items-center justify-between gap-4">
               <div>
                 <span className="text-xs uppercase tracking-wider text-burgundy-400">Order Reference</span>
-                <h2 className="text-lg font-mono font-semibold text-burgundy-950">#{order.id.slice(0, 8).toUpperCase()}</h2>
+                <h2 className="text-lg font-mono font-semibold text-burgundy-950">#{order.short_id || order.id.slice(0, 8).toUpperCase()}</h2>
                 <p className="text-xs text-burgundy-500 mt-1">Placed on {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
               </div>
 

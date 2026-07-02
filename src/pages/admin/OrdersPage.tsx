@@ -55,7 +55,7 @@ export function OrdersPage() {
   }
 
   const handleSendEmail = (order: Order) => {
-    const shortId = order.id.slice(0, 8).toUpperCase()
+    const shortId = order.short_id || order.id.slice(0, 8).toUpperCase()
     const subject = encodeURIComponent(`Order Confirmation - #${shortId} | Keepsake Moments`)
     
     // Format list of items
@@ -134,7 +134,12 @@ export function OrdersPage() {
                 onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
               >
                 <div className="min-w-0">
-                  <div className="font-medium text-gray-900">{order.customer_name}</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-gray-900">{order.customer_name}</span>
+                    <span className="font-mono text-[10px] text-burgundy-900 bg-burgundy-50 px-1.5 py-0.5 rounded border border-burgundy-100/50">
+                      #{order.short_id || order.id.slice(0, 8).toUpperCase()}
+                    </span>
+                  </div>
                   <div className="mt-0.5 text-xs text-gray-400">{order.email} · {order.phone}</div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -175,7 +180,8 @@ export function OrdersPage() {
                         </div>
                       )}
                       <div className="mt-1 text-xs text-gray-400">
-                        <span className="font-medium">Order ID:</span> <span className="font-mono text-gray-600 selection:bg-burgundy-100">{order.id}</span>
+                        <span className="font-medium">Order ID:</span> <span className="font-mono text-gray-600 font-semibold selection:bg-burgundy-100">#{order.short_id || order.id.slice(0, 8).toUpperCase()}</span>
+                        <span className="text-[10px] text-gray-400 font-mono ml-2">(UUID: {order.id})</span>
                       </div>
                       {order.razorpay_payment_id && (
                         <div className="mt-1 text-xs text-gray-400">

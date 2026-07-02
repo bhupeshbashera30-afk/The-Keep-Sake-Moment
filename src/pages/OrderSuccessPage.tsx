@@ -49,7 +49,7 @@ export function OrderSuccessPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-wider text-burgundy-400">Order ID</p>
-              <p className="font-mono text-sm text-burgundy-700">{order.id.slice(0, 8).toUpperCase()}</p>
+              <p className="font-mono text-sm text-burgundy-700">{order.short_id || order.id.slice(0, 8).toUpperCase()}</p>
             </div>
             <span className={`rounded-full px-3 py-1 text-xs font-medium ${
               order.payment_status === 'paid'
