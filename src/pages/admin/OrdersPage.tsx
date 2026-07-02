@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Search, RefreshCw, ChevronDown, ShoppingBag, Trash2, Mail } from 'lucide-react'
+import { Search, RefreshCw, ChevronDown, ShoppingBag, Trash2, Mail, CheckCircle, Loader2 } from 'lucide-react'
 import { useOrders, type Order } from '../../hooks/useOrders'
+import { supabase } from '../../lib/supabase'
 
 const PAYMENT_COLORS: Record<string, string> = {
   paid: 'bg-green-100 text-green-700',
@@ -25,6 +26,8 @@ export function OrdersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [emailingId, setEmailingId] = useState<string | null>(null)
+  const [emailSentIds, setEmailSentIds] = useState<Set<string>>(new Set())
   const { orders, loading, refetch, updateOrderStatus, deleteOrder } = useOrders(debouncedSearch)
 
   let debounceTimer: ReturnType<typeof setTimeout>
@@ -54,30 +57,23 @@ export function OrdersPage() {
     setUpdatingId(null)
   }
 
-  const handleSendEmail = (order: Order) => {
-    const shortId = order.short_id || order.id.slice(0, 8).toUpperCase()
-    const subject = encodeURIComponent(`Order Confirmation - #${shortId} | Keepsake Moments`)
-    
-    // Format list of items
-    const itemsList = (order.products || []).map(item => `- ${item.name} (Qty: ${item.qty})`).join('\n')
-    
-    const body = encodeURIComponent(
-      `Dear ${order.customer_name},\n\n` +
-      `Thank you for your order with Keepsake Moments!\n\n` +
-      `Order Reference ID: #${shortId}\n` +
-      `Total Paid: ₹${Number(order.total).toLocaleString('en-IN')}\n` +
-      `Payment Status: ${order.payment_status.toUpperCase()}\n` +
-      `Order Status: ${order.order_status.toUpperCase()}\n\n` +
-      `Items Details:\n${itemsList}\n\n` +
-      `Delivery Address:\n${order.address || 'N/A'}\n\n` +
-      `You can track the progress of your delivery on our website anytime using the Reference ID below:\n` +
-      `Tracking ID: ${order.id}\n` +
-      `Track here: ${window.location.origin}/track-order\n\n` +
-      `Warm regards,\n` +
-      `Keepsake Moments Team`
-    )
-    
-    window.open(`mailto:${order.email || ''}?subject=${subject}&body=${body}`, '_blank')
+  const handleSendEmail = async (order: Order) => {
+    if (!supabase || emailingId) return
+    setEmailingId(order.id)
+    try {
+      const { data, error } = await supabase.functions.invoke('send-order-email', {
+        body: { order_id: order.id },
+      })
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+      setEmailSentIds(prev => new Set(prev).add(order.id))
+      alert(`✅ Email sent to ${order.email}`)
+    } catch (err: any) {
+      console.error('Email send error:', err)
+      alert(`❌ Failed to send email: ${err.message || 'Unknown error'}`)
+    } finally {
+      setEmailingId(null)
+    }
   }
 
   return (
@@ -226,10 +222,21 @@ export function OrdersPage() {
                         <div className="flex flex-wrap gap-2 pt-2">
                           <button
                             onClick={() => handleSendEmail(order)}
-                            className="flex items-center gap-1.5 rounded-xl border border-burgundy-200 bg-burgundy-50 px-3.5 py-2 text-xs font-medium text-burgundy-800 transition hover:bg-burgundy-100"
+                            disabled={emailingId === order.id}
+                            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-medium transition ${
+                              emailSentIds.has(order.id)
+                                ? 'border-green-200 bg-green-50 text-green-700'
+                                : 'border-burgundy-200 bg-burgundy-50 text-burgundy-800 hover:bg-burgundy-100'
+                            } disabled:opacity-60 disabled:cursor-not-allowed`}
                           >
-                            <Mail className="h-3.5 w-3.5" />
-                            Email Confirmation
+                            {emailingId === order.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : emailSentIds.has(order.id) ? (
+                              <CheckCircle className="h-3.5 w-3.5" />
+                            ) : (
+                              <Mail className="h-3.5 w-3.5" />
+                            )}
+                            {emailingId === order.id ? 'Sending…' : emailSentIds.has(order.id) ? 'Email Sent' : 'Email Confirmation'}
                           </button>
 
                           <button

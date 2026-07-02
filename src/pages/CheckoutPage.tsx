@@ -401,6 +401,9 @@ export function CheckoutPage() {
                 .update({ payment_status: 'paid' })
                 .eq('order_id', orderId)
 
+              // Auto-send confirmation email (fire-and-forget)
+              supabase!.functions.invoke('send-order-email', { body: { order_id: orderId } }).catch(console.error)
+
               clearCart()
               navigate('/order-success?id=' + orderId)
             } catch (verifyErr: any) {
@@ -494,6 +497,10 @@ export function CheckoutPage() {
                 razorpay_signature: response.razorpay_signature,
                 order_db_id: orderId,
               })
+
+              // Auto-send confirmation email (fire-and-forget)
+              supabase!.functions.invoke('send-order-email', { body: { order_id: orderId } }).catch(console.error)
+
               clearCart()
               navigate('/order-success?id=' + orderId)
             } catch (verifyErr: any) {
