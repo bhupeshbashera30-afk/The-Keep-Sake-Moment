@@ -13,8 +13,8 @@
  */
 
 const PROJECT_REF = 'rjrwpulvystjkcfeldpk'
-const RAZORPAY_KEY_ID = 'rzp_test_T1QwIAO7zPg4bx'
-const RAZORPAY_KEY_SECRET = 'XJHgqVEv6v8K3k53Gjfz3VNV'
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_T1QwIAO7zPg4bx'
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'XJHgqVEv6v8K3k53Gjfz3VNV'
 
 import { execSync } from 'child_process'
 
