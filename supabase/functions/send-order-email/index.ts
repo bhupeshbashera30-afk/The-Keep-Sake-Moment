@@ -154,8 +154,8 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Keepsake Moments <onboarding@resend.dev>',
-        reply_to: 'thekeepsakemoment@gmail.com',
+        from: 'Keepsake Moments <orders@thekeepsakemoment.in>',
+        reply_to: 'support@thekeepsakemoment.in',
         to: [order.email],
         subject: `Order Confirmation - #${shortId} | Keepsake Moments`,
         html: htmlBody,

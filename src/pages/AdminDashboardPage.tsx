@@ -3,8 +3,9 @@ import {
   LayoutDashboard, Package, ShoppingBag, BarChart2, LogOut, Menu, CalendarDays,
   MessageSquare, CreditCard, Users, Settings, Bell, ChevronDown, Gift, Image
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAdminAuth } from '../context/AdminAuthContext'
+import { supabase } from '../lib/supabase'
 
 const NAV_GROUPS = [
   {
@@ -21,6 +22,12 @@ const NAV_GROUPS = [
     items: [
       { to: '/admin/enquiries', icon: MessageSquare, label: 'Event Enquiries' },
       { to: '/admin/bookings', icon: Gift, label: 'Bookings' },
+    ],
+  },
+  {
+    title: 'Support',
+    items: [
+      { to: '/admin/support', icon: MessageSquare, label: 'Customer Support' },
     ],
   },
   {
@@ -57,6 +64,44 @@ export function AdminLayout() {
     start: offsetDateIso(-30),
     end: todayIso,
   })
+  const [activeSupportCount, setActiveSupportCount] = useState(0)
+
+  // Fetch initial active support count and subscribe
+  useEffect(() => {
+    if (!session || !supabase) return
+
+    const fetchActiveCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('support_threads')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['open', 'pending'])
+        if (!error && count !== null) {
+          setActiveSupportCount(count)
+        }
+      } catch (err) {
+        console.error('Error fetching support count:', err)
+      }
+    }
+
+    fetchActiveCount()
+
+    // Subscribe to support_threads changes
+    const channel = supabase
+      .channel('realtime-support-counter')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'support_threads' },
+        () => {
+          fetchActiveCount()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [session])
 
   if (loading) {
     return (
@@ -129,7 +174,12 @@ export function AdminLayout() {
                           }
                         >
                           <Icon className="h-4 w-4 flex-shrink-0" />
-                          {label}
+                          <span>{label}</span>
+                          {label === 'Customer Support' && activeSupportCount > 0 && (
+                            <span className="ml-auto rounded-full bg-burgundy-100 px-2 py-0.5 text-[10px] font-bold text-burgundy-900 border border-burgundy-200">
+                              {activeSupportCount}
+                            </span>
+                          )}
                         </NavLink>
                       ) : (
                         <button
@@ -254,17 +304,29 @@ export function AdminLayout() {
                 setNotificationOpen(open => !open)
                 setDateMenuOpen(false)
               }}
-              className="relative rounded-full border border-burgundy-100 bg-white p-2.5 text-burgundy-800 shadow-sm"
+              className="relative rounded-full border border-burgundy-100 bg-white p-2.5 text-burgundy-800 shadow-sm animate-none"
             >
               <Bell className="h-4 w-4" />
+              {activeSupportCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                  {activeSupportCount}
+                </span>
+              )}
             </button>
             {notificationOpen && (
               <div className="absolute right-0 top-12 z-50 w-72 overflow-hidden rounded-lg border border-burgundy-100 bg-white shadow-soft">
                 <div className="border-b border-burgundy-100 px-4 py-3">
                   <div className="text-sm font-semibold text-burgundy-950">Notifications</div>
-                  <div className="text-xs text-burgundy-950/45">Enquiries and booking requests</div>
+                  <div className="text-xs text-burgundy-950/45">Enquiries, bookings and support</div>
                 </div>
                 <div className="divide-y divide-burgundy-50">
+                  <Link to="/admin/support" onClick={() => setNotificationOpen(false)} className="flex items-start gap-3 px-4 py-3 text-sm transition hover:bg-burgundy-50">
+                    <MessageSquare className="mt-0.5 h-4 w-4 text-burgundy-700" />
+                    <span>
+                      <span className="block font-medium text-burgundy-950">Customer Support ({activeSupportCount})</span>
+                      <span className="block text-xs text-burgundy-950/45">Active support conversations</span>
+                    </span>
+                  </Link>
                   <Link to="/admin/enquiries" onClick={() => setNotificationOpen(false)} className="flex items-start gap-3 px-4 py-3 text-sm transition hover:bg-burgundy-50">
                     <MessageSquare className="mt-0.5 h-4 w-4 text-burgundy-700" />
                     <span>
