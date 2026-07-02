@@ -1,7 +1,7 @@
 import { Link, Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, BarChart2, LogOut, Menu, CalendarDays,
-  MessageSquare, CreditCard, Users, Settings, Bell, ChevronDown, Gift, Image
+  MessageSquare, CreditCard, Users, Settings, Bell, ChevronDown, Gift, Image, Key
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAdminAuth } from '../context/AdminAuthContext'
@@ -34,9 +34,14 @@ const NAV_GROUPS = [
     title: 'Settings',
     items: [
       { to: '/admin/homepage-images', icon: Image, label: 'Homepage Images' },
-      { to: '', icon: CreditCard, label: 'Payments' },
-      { to: '', icon: Users, label: 'Users & Roles' },
-      { to: '', icon: Settings, label: 'Settings' },
+      { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
+      { to: '/admin/settings', icon: Settings, label: 'Settings' },
+    ],
+  },
+  {
+    title: 'Developer',
+    items: [
+      { to: '/admin/api', icon: Key, label: 'API Keys' },
     ],
   },
 ]

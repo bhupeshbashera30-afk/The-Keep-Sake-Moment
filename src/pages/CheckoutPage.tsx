@@ -206,6 +206,42 @@ export function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
+  const [addonsList, setAddonsList] = useState<AddOn[]>(ADDONS)
+  const [termsList, setTermsList] = useState<string[]>(TERMS_AND_CONDITIONS)
+
+  // Fetch addons and terms from Supabase
+  useEffect(() => {
+    const loadConfig = async () => {
+      if (!supabase) return
+      try {
+        const { data: addonsData } = await supabase!
+          .from('site_addons')
+          .select('*')
+          .order('sort_order', { ascending: true })
+        if (addonsData && addonsData.length > 0) {
+          setAddonsList(addonsData.map(a => ({
+            id: a.id,
+            name: a.name,
+            emoji: a.emoji,
+            price: Number(a.price),
+            description: a.description
+          })))
+        }
+
+        const { data: termsData } = await supabase!
+          .from('site_terms')
+          .select('term_text')
+          .order('sort_order', { ascending: true })
+        if (termsData && termsData.length > 0) {
+          setTermsList(termsData.map(t => t.term_text))
+        }
+      } catch (err) {
+        console.error('Error fetching checkout config:', err)
+      }
+    }
+    loadConfig()
+  }, [])
+
   // Determine if this is a booking checkout or regular cart checkout
   const hasBookingItems = useMemo(() => {
     if (bookingMeta) return true
@@ -254,8 +290,8 @@ export function CheckoutPage() {
 
   // Calculate addons total
   const addonsTotal = useMemo(() => {
-    return ADDONS.filter(a => selectedAddons.has(a.id)).reduce((sum, a) => sum + a.price, 0)
-  }, [selectedAddons])
+    return addonsList.filter(a => selectedAddons.has(a.id)).reduce((sum, a) => sum + a.price, 0)
+  }, [selectedAddons, addonsList])
 
   // Compute final booking total
   const finalBookingTotal = (bookingProduct?.price || 0) + addonsTotal
@@ -307,7 +343,7 @@ export function CheckoutPage() {
     setLoading(true)
     setErrorMsg(null)
 
-    const selectedAddonsList = ADDONS.filter(a => selectedAddons.has(a.id)).map(a => ({ id: a.id, name: a.name, price: a.price }))
+    const selectedAddonsList = addonsList.filter(a => selectedAddons.has(a.id)).map(a => ({ id: a.id, name: a.name, price: a.price }))
     const slotLabel = TIME_SLOTS.find(s => s.id === selectedSlot)?.label || selectedSlot
 
     try {
@@ -639,7 +675,7 @@ export function CheckoutPage() {
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {ADDONS.map(addon => {
+                    {addonsList.map(addon => {
                       const isSelected = selectedAddons.has(addon.id)
                       return (
                         <button
@@ -824,7 +860,7 @@ export function CheckoutPage() {
                   </div>
 
                   <div className="rounded-2xl border border-burgundy-100 bg-white p-5 space-y-3 max-h-72 overflow-y-auto">
-                    {TERMS_AND_CONDITIONS.map((term, i) => (
+                    {termsList.map((term, i) => (
                       <div key={i} className="flex items-start gap-3 text-sm text-burgundy-700">
                         <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-burgundy-50 text-[10px] font-bold text-burgundy-500">
                           {i + 1}
@@ -968,7 +1004,7 @@ export function CheckoutPage() {
                       <div className="border-t border-burgundy-100 pt-3">
                         <span className="text-xs font-semibold uppercase tracking-wider text-burgundy-400">Add-ons</span>
                       </div>
-                      {ADDONS.filter(a => selectedAddons.has(a.id)).map(addon => (
+                      {addonsList.filter(a => selectedAddons.has(a.id)).map(addon => (
                         <div key={addon.id} className="flex justify-between">
                           <span className="text-burgundy-600">{addon.emoji} {addon.name}</span>
                           <span className="font-medium text-burgundy-900 tabular-nums">₹{addon.price.toLocaleString('en-IN')}</span>

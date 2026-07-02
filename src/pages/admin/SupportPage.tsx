@@ -538,11 +538,10 @@ export function SupportPage() {
                         } as any)}
                       </span>
 
-                      {/* Content Card */}
                       <div
                         className={`rounded-2xl px-4 py-3 shadow-soft border ${
                           isAdmin
-                            ? 'bg-burgundy-850 text-white border-burgundy-800'
+                            ? 'bg-burgundy-50 text-burgundy-950 border-burgundy-100'
                             : 'bg-white text-ink border-burgundy-100/50'
                         }`}
                       >
