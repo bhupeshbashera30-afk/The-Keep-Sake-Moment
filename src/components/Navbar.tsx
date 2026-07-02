@@ -211,6 +211,17 @@ export function Navbar() {
               >
                 About
               </NavLink>
+
+              <NavLink
+                to="/track-order"
+                className={({ isActive }) =>
+                  `rounded-full px-4 py-2 text-sm transition ${
+                    isActive ? 'bg-burgundy-50 text-burgundy-900' : 'text-burgundy-600 hover:text-burgundy-900'
+                  }`
+                }
+              >
+                Track Order
+              </NavLink>
             </nav>
 
             {/* Desktop CTA */}
@@ -270,6 +281,7 @@ export function Navbar() {
               ))}
               <div className="my-2 h-px bg-burgundy-50" />
               <MobileLink to="/about" onClick={() => setMobileOpen(false)}>About</MobileLink>
+              <MobileLink to="/track-order" onClick={() => setMobileOpen(false)}>Track Order</MobileLink>
               <MobileLink to="/contact" onClick={() => setMobileOpen(false)}>Contact</MobileLink>
               <button
                 onClick={() => { setMobileOpen(false); setEnquiryOpen(true) }}

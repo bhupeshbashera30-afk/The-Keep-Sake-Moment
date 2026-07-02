@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, Gift, RefreshCw, Search, Phone, Mail, Users, Tag, Clock, ArrowRight, ShieldCheck } from 'lucide-react'
+import { CalendarDays, Gift, RefreshCw, Search, Phone, Mail, Users, Tag, Clock, ArrowRight, ShieldCheck, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { TIME_SLOTS } from '../../lib/siteConfig'
 
@@ -93,6 +93,25 @@ export function BookingsPage() {
     if (updateError) {
       console.error(updateError)
       setError(updateError.message)
+    } else {
+      await fetchConfirmed()
+    }
+  }
+
+  const handleDeleteBooking = async (id: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this booking slot reservation? This will free up the slot for others to book.')
+    if (!confirmDelete) return
+    setError(null)
+    if (!supabase) return
+
+    const { error: deleteError } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id)
+
+    if (deleteError) {
+      console.error(deleteError)
+      setError(deleteError.message)
     } else {
       await fetchConfirmed()
     }
@@ -333,6 +352,14 @@ export function BookingsPage() {
                             <ShieldCheck className="h-3.5 w-3.5" /> Verified Booking
                           </span>
                         )}
+
+                        <button
+                          onClick={() => handleDeleteBooking(booking.id)}
+                          className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 transition hover:bg-red-100"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete Booking
+                        </button>
                       </div>
                     </div>
                   </div>
