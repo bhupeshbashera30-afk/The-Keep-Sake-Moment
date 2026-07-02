@@ -476,17 +476,17 @@ export function SupportPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap justify-end">
                 {/* Priority Dropdown */}
                 <div className="flex items-center gap-1">
-                  <span className="text-[10px] uppercase font-semibold text-burgundy-400 tracking-wider">Priority:</span>
+                  <span className="hidden md:inline text-[9px] uppercase font-bold text-burgundy-400 tracking-wider">Priority:</span>
                   <select
                     value={currentSelectedThread.priority}
                     onChange={e => updateThreadField('priority', e.target.value)}
-                    className="rounded-lg border border-burgundy-100 bg-white px-2 py-1 text-xs text-ink focus:border-burgundy-300 outline-none"
+                    className="rounded-lg border border-burgundy-100 bg-white px-1.5 py-0.5 text-[10px] text-ink focus:border-burgundy-300 outline-none max-w-[75px]"
                   >
                     <option value="low">Low</option>
-                    <option value="medium">Medium</option>
+                    <option value="medium">Med</option>
                     <option value="high">High</option>
                     <option value="urgent">Urgent</option>
                   </select>
@@ -494,15 +494,15 @@ export function SupportPage() {
 
                 {/* Status Dropdown */}
                 <div className="flex items-center gap-1">
-                  <span className="text-[10px] uppercase font-semibold text-burgundy-400 tracking-wider">Status:</span>
+                  <span className="hidden md:inline text-[9px] uppercase font-bold text-burgundy-400 tracking-wider">Status:</span>
                   <select
                     value={currentSelectedThread.status}
                     onChange={e => updateThreadField('status', e.target.value)}
-                    className="rounded-lg border border-burgundy-100 bg-white px-2 py-1 text-xs text-ink focus:border-burgundy-300 outline-none"
+                    className="rounded-lg border border-burgundy-100 bg-white px-1.5 py-0.5 text-[10px] text-ink focus:border-burgundy-300 outline-none max-w-[105px]"
                   >
                     <option value="open">Open</option>
                     <option value="pending">Pending</option>
-                    <option value="waiting_for_customer">Waiting for Customer</option>
+                    <option value="waiting_for_customer">Waiting</option>
                     <option value="resolved">Resolved</option>
                     <option value="closed">Closed</option>
                   </select>
