@@ -174,6 +174,9 @@ export function OrdersPage() {
                           <span className="font-medium">Address:</span> {order.address}
                         </div>
                       )}
+                      <div className="mt-1 text-xs text-gray-400">
+                        <span className="font-medium">Order ID:</span> <span className="font-mono text-gray-600 selection:bg-burgundy-100">{order.id}</span>
+                      </div>
                       {order.razorpay_payment_id && (
                         <div className="mt-1 text-xs text-gray-400">
                           <span className="font-medium">Razorpay ID:</span> {order.razorpay_payment_id}
