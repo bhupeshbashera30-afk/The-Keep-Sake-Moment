@@ -69,10 +69,11 @@ export function AdminLayout() {
   // Fetch initial active support count and subscribe
   useEffect(() => {
     if (!session || !supabase) return
+    const client = supabase!
 
     const fetchActiveCount = async () => {
       try {
-        const { count, error } = await supabase
+        const { count, error } = await client
           .from('support_threads')
           .select('*', { count: 'exact', head: true })
           .in('status', ['open', 'pending'])
@@ -87,7 +88,7 @@ export function AdminLayout() {
     fetchActiveCount()
 
     // Subscribe to support_threads changes
-    const channel = supabase
+    const channel = client
       .channel('realtime-support-counter')
       .on(
         'postgres_changes',
@@ -99,7 +100,7 @@ export function AdminLayout() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      client.removeChannel(channel)
     }
   }, [session])
 

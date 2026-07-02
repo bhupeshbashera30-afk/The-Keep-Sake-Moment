@@ -79,12 +79,11 @@ export function SupportPage() {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
-  // Fetch support threads
   const fetchThreads = async () => {
     if (!supabase) return
     try {
       setLoadingThreads(true)
-      let query = supabase
+      let query = supabase!
         .from('support_threads')
         .select('*')
         .order('last_message_at', { ascending: false })
@@ -104,9 +103,10 @@ export function SupportPage() {
     fetchThreads()
 
     if (!supabase) return
+    const client = supabase!
 
     // Realtime channel for support threads
-    const threadSubscription = supabase
+    const threadSubscription = client
       .channel('realtime-support-threads')
       .on(
         'postgres_changes',
@@ -127,15 +127,16 @@ export function SupportPage() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(threadSubscription)
+      client.removeChannel(threadSubscription)
     }
   }, [])
 
   // Handle support message realtime updates for selected thread
   useEffect(() => {
     if (!selectedThreadId || !supabase) return
+    const client = supabase!
 
-    const messageSubscription = supabase
+    const messageSubscription = client
       .channel(`realtime-support-messages-${selectedThreadId}`)
       .on(
         'postgres_changes',
@@ -158,7 +159,7 @@ export function SupportPage() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(messageSubscription)
+      client.removeChannel(messageSubscription)
     }
   }, [selectedThreadId])
 
@@ -177,7 +178,7 @@ export function SupportPage() {
       setLoadingMessages(true)
       try {
         // 1. Fetch messages
-        const { data: msgData, error: msgErr } = await supabase
+        const { data: msgData, error: msgErr } = await supabase!
           .from('support_messages')
           .select('*')
           .eq('thread_id', selectedThreadId)
@@ -193,7 +194,7 @@ export function SupportPage() {
           const email = currentThread.customer_email
           
           // Fetch customer recent orders
-          const { data: ordersData } = await supabase
+          const { data: ordersData } = await supabase!
             .from('orders')
             .select('id,short_id,total,payment_status,order_status,address,phone,customer_name,created_at')
             .eq('email', email)
@@ -229,7 +230,7 @@ export function SupportPage() {
   const updateThreadField = async (field: 'status' | 'priority', value: string) => {
     if (!selectedThreadId || !supabase) return
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('support_threads')
         .update({ [field]: value, updated_at: new Date().toISOString() })
         .eq('id', selectedThreadId)
@@ -250,7 +251,7 @@ export function SupportPage() {
 
     setSending(true)
     try {
-      const { data, error } = await supabase.functions.invoke('reply-support-email', {
+      const { data, error } = await supabase!.functions.invoke('reply-support-email', {
         body: {
           thread_id: selectedThreadId,
           message: replyText.trim(),
