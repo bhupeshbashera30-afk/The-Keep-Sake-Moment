@@ -23,6 +23,10 @@ import { EventEnquiriesPage } from './pages/admin/EventEnquiriesPage'
 import { BookingsPage } from './pages/admin/BookingsPage'
 import { HomepageImagesPage } from './pages/admin/HomepageImagesPage'
 import { TrackOrderPage } from './pages/TrackOrderPage'
+import { SupportPage } from './pages/admin/SupportPage'
+import { PaymentsPage } from './pages/admin/PaymentsPage'
+import { SettingsPage } from './pages/admin/SettingsPage'
+import { ApiPage } from './pages/admin/ApiPage'
 
 export default function App() {
   return (
@@ -55,6 +59,10 @@ export default function App() {
             <Route path="/admin/enquiries" element={<EventEnquiriesPage />} />
             <Route path="/admin/bookings" element={<BookingsPage />} />
             <Route path="/admin/homepage-images" element={<HomepageImagesPage />} />
+            <Route path="/admin/support" element={<SupportPage />} />
+            <Route path="/admin/payments" element={<PaymentsPage />} />
+            <Route path="/admin/settings" element={<SettingsPage />} />
+            <Route path="/admin/api" element={<ApiPage />} />
           </Route>
         </Routes>
       </CartProvider>

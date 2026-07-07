@@ -74,6 +74,20 @@ serve(async (req) => {
       )
     }
 
+    // Trigger send-order-email Edge Function (fire-and-forget)
+    try {
+      fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ order_id: order_db_id }),
+      }).catch(err => console.error('Error triggering send-order-email inside verify-razorpay-payment:', err))
+    } catch (emailErr) {
+      console.error('Failed to trigger email function inside verify-razorpay-payment:', emailErr)
+    }
+
     return new Response(
       JSON.stringify({ success: true, message: 'Payment verified and order confirmed' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

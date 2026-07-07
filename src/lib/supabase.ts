@@ -55,6 +55,7 @@ export type Order = {
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
   order_status: 'processing' | 'confirmed' | 'preparing' | 'dispatched' | 'delivered' | 'cancelled'
   razorpay_payment_id: string | null
+  short_id?: string
   created_at: string
 }
 

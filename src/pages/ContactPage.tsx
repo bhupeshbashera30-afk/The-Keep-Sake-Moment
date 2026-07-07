@@ -29,6 +29,20 @@ export function ContactPage() {
 
             {/* Left: meta */}
             <div className="space-y-6">
+              {/* Direct Support Email Card */}
+              <div className="card-lift rounded-[2rem] border border-burgundy-150 bg-burgundy-50/30 p-8 shadow-soft">
+                <p className="text-[10px] uppercase tracking-[0.35em] text-burgundy-500">Email Support</p>
+                <a 
+                  href="mailto:support@thekeepsakemoment.in"
+                  className="mt-4 block font-serif text-xl text-burgundy-950 hover:underline hover:text-burgundy-800 transition"
+                >
+                  support@thekeepsakemoment.in
+                </a>
+                <p className="mt-3 text-sm leading-7 text-burgundy-700">
+                  Prefer direct email? Send us a message anytime! Your request is routed instantly to our customer support inbox.
+                </p>
+              </div>
+
               {/* Response style card */}
               <div className="card-lift rounded-[2rem] border border-burgundy-100 bg-white p-8 shadow-soft">
                 <p className="text-[10px] uppercase tracking-[0.35em] text-burgundy-500">Response style</p>
