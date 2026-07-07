@@ -1,7 +1,8 @@
 import { Link, Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, BarChart2, LogOut, Menu, CalendarDays,
-  MessageSquare, CreditCard, Users, Settings, Bell, ChevronDown, Gift, Image, Key
+  MessageSquare, CreditCard, Users, Settings, Bell, ChevronDown, Gift, Image, Key,
+  Layers, FileText, QrCode, Clipboard
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAdminAuth } from '../context/AdminAuthContext'
@@ -22,6 +23,8 @@ const NAV_GROUPS = [
     items: [
       { to: '/admin/enquiries', icon: MessageSquare, label: 'Event Enquiries' },
       { to: '/admin/bookings', icon: Gift, label: 'Bookings' },
+      { to: '/admin/addons', icon: Layers, label: 'Booking Add-ons' },
+      { to: '/admin/qr-payments', icon: QrCode, label: 'QR Payments' },
     ],
   },
   {
@@ -35,7 +38,8 @@ const NAV_GROUPS = [
     items: [
       { to: '/admin/homepage-images', icon: Image, label: 'Homepage Images' },
       { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
-      { to: '/admin/settings', icon: Settings, label: 'Settings' },
+      { to: '/admin/invoice', icon: FileText, label: 'Invoice Generator' },
+      { to: '/admin/terms', icon: Clipboard, label: 'Terms & Conditions' },
     ],
   },
   {

@@ -27,6 +27,9 @@ import { SupportPage } from './pages/admin/SupportPage'
 import { PaymentsPage } from './pages/admin/PaymentsPage'
 import { SettingsPage } from './pages/admin/SettingsPage'
 import { ApiPage } from './pages/admin/ApiPage'
+import { AddonsPage } from './pages/admin/AddonsPage'
+import { InvoicePage } from './pages/admin/InvoicePage'
+import { QrPaymentPage } from './pages/admin/QrPaymentPage'
 
 export default function App() {
   return (
@@ -62,6 +65,10 @@ export default function App() {
             <Route path="/admin/support" element={<SupportPage />} />
             <Route path="/admin/payments" element={<PaymentsPage />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
+            <Route path="/admin/terms" element={<SettingsPage />} />
+            <Route path="/admin/addons" element={<AddonsPage />} />
+            <Route path="/admin/invoice" element={<InvoicePage />} />
+            <Route path="/admin/qr-payments" element={<QrPaymentPage />} />
             <Route path="/admin/api" element={<ApiPage />} />
           </Route>
         </Routes>

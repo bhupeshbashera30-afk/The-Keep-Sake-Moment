@@ -224,7 +224,8 @@ export function CheckoutPage() {
             name: a.name,
             emoji: a.emoji,
             price: Number(a.price),
-            description: a.description
+            description: a.description,
+            image_url: a.image_url
           })))
         }
 
@@ -293,8 +294,15 @@ export function CheckoutPage() {
     return addonsList.filter(a => selectedAddons.has(a.id)).reduce((sum, a) => sum + a.price, 0)
   }, [selectedAddons, addonsList])
 
-  // Compute final booking total
+  // Compute final booking total (full price for records)
   const finalBookingTotal = (bookingProduct?.price || 0) + addonsTotal
+
+  // ── Split Payment: 20% advance on product + 100% add-ons ──
+  const BOOKING_ADVANCE_PERCENT = 0.20
+  const productPrice = bookingProduct?.price || 0
+  const advanceProductAmount = Math.ceil(productPrice * BOOKING_ADVANCE_PERCENT)
+  const payableNow = advanceProductAmount + addonsTotal
+  const balanceDue = productPrice - advanceProductAmount
 
   // Pre-populate from bookingMeta if available
   useEffect(() => {
@@ -364,6 +372,7 @@ export function CheckoutPage() {
           total: finalBookingTotal,
           payment_status: 'pending',
           order_status: 'processing',
+          notes: `Advance (20%): ₹${advanceProductAmount} | Add-ons: ₹${addonsTotal} | Paid Now: ₹${payableNow} | Balance Due: ₹${balanceDue}`,
         })
         .select('id')
 
@@ -395,20 +404,20 @@ export function CheckoutPage() {
         // Don't throw — order is created, just log the booking error
       }
 
-      // Step 3: Razorpay payment
+      // Step 3: Razorpay payment (20% advance + full add-ons)
       if (RAZORPAY_KEY_ID) {
         const rzpOrder = await callEdgeFunction('create-razorpay-order', {
-          amount: finalBookingTotal,
+          amount: payableNow,
           currency: 'INR',
           order_db_id: orderId,
         })
 
         const options = {
           key: RAZORPAY_KEY_ID,
-          amount: Math.round(finalBookingTotal * 100),
+          amount: Math.round(payableNow * 100),
           currency: 'INR',
           name: 'Keepsake Moments',
-          description: `Booking: ${bookingProduct.name} – ${slotLabel}`,
+          description: `Booking Advance (20%): ${bookingProduct.name} – ${slotLabel}`,
           order_id: rzpOrder.razorpay_order_id,
           prefill: {
             name: bookingForm.customer_name,
@@ -682,34 +691,54 @@ export function CheckoutPage() {
                           key={addon.id}
                           onClick={() => toggleAddon(addon.id)}
                           className={`
-                            relative flex items-start gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-200
+                            relative flex items-center gap-3.5 rounded-2xl border-2 p-3 text-left transition-all duration-300 min-h-[96px]
                             ${isSelected
-                              ? 'border-burgundy-800 bg-burgundy-50/80 shadow-[0_2px_12px_rgba(91,33,49,0.12)]'
-                              : 'border-burgundy-100 bg-white hover:border-burgundy-200 hover:shadow-soft'
+                              ? 'border-burgundy-800 bg-burgundy-50/40 shadow-glow ring-1 ring-burgundy-800/10'
+                              : 'border-burgundy-100 bg-white hover:border-burgundy-300 hover:shadow-soft'
                             }
                           `}
                         >
-                          {/* Checkbox indicator */}
-                          <div className={`
-                            mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all
-                            ${isSelected
-                              ? 'border-burgundy-800 bg-burgundy-800'
-                              : 'border-burgundy-200'
-                            }
-                          `}>
-                            {isSelected && <Check className="h-3 w-3 text-white" />}
+                          {/* Image Box */}
+                          <div className="relative h-16 w-16 sm:h-20 sm:w-20 bg-burgundy-50/30 overflow-hidden shrink-0 rounded-xl border border-burgundy-100/50">
+                            {addon.image_url ? (
+                              <img
+                                src={addon.image_url}
+                                alt={addon.name}
+                                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-burgundy-50 to-parchment-100 text-2xl">
+                                {addon.emoji || '🎁'}
+                              </div>
+                            )}
                           </div>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium text-burgundy-900">
+                          {/* Card Content */}
+                          <div className="flex-1 min-w-0 pr-6">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="font-semibold text-burgundy-900 text-xs sm:text-sm leading-tight truncate">
                                 {addon.emoji} {addon.name}
                               </span>
-                              <span className={`text-sm font-serif font-semibold ${isSelected ? 'text-burgundy-800' : 'text-burgundy-600'}`}>
+                            </div>
+                            <p className="mt-1 text-[11px] text-burgundy-500 line-clamp-2 leading-relaxed">
+                              {addon.description}
+                            </p>
+                            <div className="mt-1.5 flex items-center justify-between">
+                              <span className={`text-xs font-serif font-bold ${isSelected ? 'text-burgundy-800' : 'text-burgundy-900'}`}>
                                 ₹{addon.price.toLocaleString('en-IN')}
                               </span>
                             </div>
-                            <p className="mt-0.5 text-xs text-burgundy-500">{addon.description}</p>
+                          </div>
+
+                          {/* Checkbox indicator overlay */}
+                          <div className={`
+                            absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all shadow-sm
+                            ${isSelected
+                              ? 'border-burgundy-800 bg-burgundy-800 text-white'
+                              : 'border-burgundy-200 bg-white'
+                            }
+                          `}>
+                            <Check className={`h-3 w-3 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
                           </div>
                         </button>
                       )
@@ -962,7 +991,7 @@ export function CheckoutPage() {
                       ) : (
                         <span className="flex items-center justify-center gap-2">
                           <CreditCard className="h-4 w-4" />
-                          Pay ₹{finalBookingTotal.toLocaleString('en-IN')} securely
+                          Pay ₹{payableNow.toLocaleString('en-IN')} to confirm booking
                         </span>
                       )}
                     </button>
@@ -1002,7 +1031,7 @@ export function CheckoutPage() {
                   {selectedAddons.size > 0 && (
                     <>
                       <div className="border-t border-burgundy-100 pt-3">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-burgundy-400">Add-ons</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-burgundy-400">Add-ons (full price)</span>
                       </div>
                       {addonsList.filter(a => selectedAddons.has(a.id)).map(addon => (
                         <div key={addon.id} className="flex justify-between">
@@ -1013,16 +1042,47 @@ export function CheckoutPage() {
                     </>
                   )}
 
-                  {/* Total */}
-                  <div className="mt-4 border-t border-burgundy-200 pt-4 flex justify-between">
-                    <span className="font-medium text-burgundy-900">Total</span>
+                  {/* Payment Breakdown */}
+                  <div className="mt-2 border-t border-burgundy-200 pt-3 space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-burgundy-500">Package Full Price</span>
+                      <span className="text-burgundy-600 tabular-nums">₹{productPrice.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-burgundy-700 font-medium">Booking Advance (20%)</span>
+                      <span className="text-burgundy-900 font-semibold tabular-nums">₹{advanceProductAmount.toLocaleString('en-IN')}</span>
+                    </div>
+                    {addonsTotal > 0 && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-burgundy-700 font-medium">Add-ons Total</span>
+                        <span className="text-burgundy-900 font-semibold tabular-nums">₹{addonsTotal.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pay Now */}
+                  <div className="mt-2 border-t border-burgundy-300 pt-3 flex justify-between">
+                    <span className="font-semibold text-burgundy-950">Pay Now</span>
                     <span className="font-serif text-xl text-burgundy-950 tabular-nums">
-                      ₹{finalBookingTotal.toLocaleString('en-IN')}
+                      ₹{payableNow.toLocaleString('en-IN')}
                     </span>
                   </div>
 
+                  {/* Balance Due */}
+                  {balanceDue > 0 && (
+                    <div className="flex justify-between items-center rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
+                      <span className="text-xs text-amber-700 font-medium">Balance Due (later)</span>
+                      <span className="text-sm font-serif font-bold text-amber-900 tabular-nums">₹{balanceDue.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+
+                  {/* Info note */}
+                  <p className="text-[10px] text-burgundy-400 leading-relaxed">
+                    20% advance confirms your booking. Remaining 70% is due during the planning stage and 10% after event completion.
+                  </p>
+
                   {/* Razorpay badge */}
-                  <div className="mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-burgundy-100 bg-white py-2">
+                  <div className="mt-2 flex items-center justify-center gap-1.5 rounded-xl border border-burgundy-100 bg-white py-2">
                     <ShieldCheck className="h-3.5 w-3.5 text-green-500" />
                     <span className="text-[11px] text-burgundy-400">Secured by Razorpay</span>
                   </div>
