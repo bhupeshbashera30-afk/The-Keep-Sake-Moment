@@ -215,6 +215,7 @@ export type AddOn = {
   emoji: string
   price: number
   description: string
+  image_url?: string | null
 }
 
 export const ADDONS: AddOn[] = [
