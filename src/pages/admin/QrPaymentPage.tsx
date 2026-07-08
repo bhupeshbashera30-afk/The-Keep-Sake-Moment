@@ -190,9 +190,9 @@ export function QrPaymentPage() {
 
   const productPrice = selectedBooking?.products?.price || 0
   const computedAmount = paymentStage === 'planning'
-    ? Math.ceil(productPrice * 0.70)
+    ? Math.ceil(productPrice * 0.60)
     : paymentStage === 'completion'
-      ? productPrice - Math.ceil(productPrice * 0.20) - Math.ceil(productPrice * 0.70)
+      ? productPrice - Math.ceil(productPrice * 0.30) - Math.ceil(productPrice * 0.60)
       : parseFloat(customAmount) || 0
 
   const handleGenerate = async () => {
@@ -206,7 +206,7 @@ export function QrPaymentPage() {
 
     try {
       const stageLabels: Record<string, string> = {
-        planning: 'Planning Stage (70%)',
+        planning: 'Planning Stage (60%)',
         completion: 'Completion (10%)',
         custom: 'Custom Payment',
       }
@@ -305,7 +305,7 @@ export function QrPaymentPage() {
             <QrCode className="h-7 w-7 text-burgundy-800" />
             QR Payment Links
           </h1>
-          <p className="text-xs text-burgundy-400 mt-1">Generate QR codes and payment links for collecting 70% (planning) or 10% (completion) payments.</p>
+          <p className="text-xs text-burgundy-400 mt-1">Generate QR codes and payment links for collecting 60% (planning) or 10% (completion) payments.</p>
         </div>
       </div>
 
@@ -491,16 +491,16 @@ export function QrPaymentPage() {
                 {/* Payment breakdown summary */}
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-lg bg-green-50 border border-green-100 px-2 py-2">
-                    <div className="text-[10px] text-green-600 font-medium">Advance (20%)</div>
-                    <div className="text-xs font-bold text-green-800 tabular-nums">₹{Math.ceil(productPrice * 0.20).toLocaleString('en-IN')}</div>
+                    <div className="text-[10px] text-green-600 font-medium">Advance (30%)</div>
+                    <div className="text-xs font-bold text-green-800 tabular-nums">₹{Math.ceil(productPrice * 0.30).toLocaleString('en-IN')}</div>
                   </div>
                   <div className="rounded-lg bg-amber-50 border border-amber-100 px-2 py-2">
-                    <div className="text-[10px] text-amber-600 font-medium">Planning (70%)</div>
-                    <div className="text-xs font-bold text-amber-800 tabular-nums">₹{Math.ceil(productPrice * 0.70).toLocaleString('en-IN')}</div>
+                    <div className="text-[10px] text-amber-600 font-medium">Planning (60%)</div>
+                    <div className="text-xs font-bold text-amber-800 tabular-nums">₹{Math.ceil(productPrice * 0.60).toLocaleString('en-IN')}</div>
                   </div>
                   <div className="rounded-lg bg-blue-50 border border-blue-100 px-2 py-2">
                     <div className="text-[10px] text-blue-600 font-medium">Completion (10%)</div>
-                    <div className="text-xs font-bold text-blue-800 tabular-nums">₹{(productPrice - Math.ceil(productPrice * 0.20) - Math.ceil(productPrice * 0.70)).toLocaleString('en-IN')}</div>
+                    <div className="text-xs font-bold text-blue-800 tabular-nums">₹{(productPrice - Math.ceil(productPrice * 0.30) - Math.ceil(productPrice * 0.60)).toLocaleString('en-IN')}</div>
                   </div>
                 </div>
               </div>
@@ -540,8 +540,8 @@ export function QrPaymentPage() {
 
                 <div className="space-y-2 mb-4">
                   {([
-                    { value: 'planning' as const, label: 'Planning Stage — 70%', color: 'text-amber-700', amount: Math.ceil(productPrice * 0.70) },
-                    { value: 'completion' as const, label: 'Completion — 10%', color: 'text-blue-700', amount: productPrice - Math.ceil(productPrice * 0.20) - Math.ceil(productPrice * 0.70) },
+                    { value: 'planning' as const, label: 'Planning Stage — 60%', color: 'text-amber-700', amount: Math.ceil(productPrice * 0.60) },
+                    { value: 'completion' as const, label: 'Completion — 10%', color: 'text-blue-700', amount: productPrice - Math.ceil(productPrice * 0.30) - Math.ceil(productPrice * 0.60) },
                     { value: 'custom' as const, label: 'Custom Amount', color: 'text-burgundy-700', amount: null },
                   ] as const).map(opt => (
                     <label
