@@ -261,7 +261,7 @@ export function InvoicePage() {
               </thead>
               <tbody>
                 <tr>
-                  <td>Booking Advance (20% of package)</td>
+                  <td>Booking Advance (30% of package)</td>
                   <td>Due at booking</td>
                   <td class="right-align">₹${advanceAmount.toLocaleString('en-IN')}</td>
                   <td><span class="schedule-badge badge-paid">Paid</span></td>
@@ -274,7 +274,7 @@ export function InvoicePage() {
                   <td><span class="schedule-badge badge-paid">Paid</span></td>
                 </tr>
                 <tr>
-                  <td>Planning Stage (70% of package)</td>
+                  <td>Planning Stage (60% of package)</td>
                   <td>Planning phase</td>
                   <td class="right-align">₹${planningDue.toLocaleString('en-IN')}</td>
                   <td><span class="schedule-badge badge-pending">Pending</span></td>
@@ -317,10 +317,10 @@ export function InvoicePage() {
   )
 
   const productPrice = selectedBooking?.products?.price || 0
-  const advanceAmount = Math.ceil(productPrice * 0.20)
+  const advanceAmount = Math.ceil(productPrice * 0.30)
   const addonsTotal = selectedBooking?.addons_total || 0
   const paidNow = advanceAmount + addonsTotal
-  const planningDue = Math.ceil(productPrice * 0.70)
+  const planningDue = Math.ceil(productPrice * 0.60)
   const completionDue = productPrice - advanceAmount - planningDue
   const grandTotal = productPrice + addonsTotal
 
@@ -554,7 +554,7 @@ export function InvoicePage() {
                       </thead>
                       <tbody>
                         <tr>
-                          <td>Booking Advance (20% of package)</td>
+                          <td>Booking Advance (30% of package)</td>
                           <td>Due at booking</td>
                           <td className="right-align">₹{advanceAmount.toLocaleString('en-IN')}</td>
                           <td><span className="schedule-badge badge-paid">Paid</span></td>
@@ -574,7 +574,7 @@ export function InvoicePage() {
                           <td><span className="schedule-badge badge-paid">Paid</span></td>
                         </tr>
                         <tr>
-                          <td>Planning Stage (70% of package)</td>
+                          <td>Planning Stage (60% of package)</td>
                           <td>Planning phase</td>
                           <td className="right-align">₹{planningDue.toLocaleString('en-IN')}</td>
                           <td><span className="schedule-badge badge-pending">Pending</span></td>

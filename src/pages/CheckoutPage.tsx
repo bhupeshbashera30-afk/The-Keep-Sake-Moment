@@ -297,8 +297,8 @@ export function CheckoutPage() {
   // Compute final booking total (full price for records)
   const finalBookingTotal = (bookingProduct?.price || 0) + addonsTotal
 
-  // ── Split Payment: 20% advance on product + 100% add-ons ──
-  const BOOKING_ADVANCE_PERCENT = 0.20
+  // ── Split Payment: 30% advance on product + 100% add-ons ──
+  const BOOKING_ADVANCE_PERCENT = 0.30
   const productPrice = bookingProduct?.price || 0
   const advanceProductAmount = Math.ceil(productPrice * BOOKING_ADVANCE_PERCENT)
   const payableNow = advanceProductAmount + addonsTotal
@@ -372,7 +372,7 @@ export function CheckoutPage() {
           total: finalBookingTotal,
           payment_status: 'pending',
           order_status: 'processing',
-          notes: `Advance (20%): ₹${advanceProductAmount} | Add-ons: ₹${addonsTotal} | Paid Now: ₹${payableNow} | Balance Due: ₹${balanceDue}`,
+          notes: `Advance (30%): ₹${advanceProductAmount} | Add-ons: ₹${addonsTotal} | Paid Now: ₹${payableNow} | Balance Due: ₹${balanceDue}`,
         })
         .select('id')
 
@@ -417,7 +417,7 @@ export function CheckoutPage() {
           amount: Math.round(payableNow * 100),
           currency: 'INR',
           name: 'Keepsake Moments',
-          description: `Booking Advance (20%): ${bookingProduct.name} – ${slotLabel}`,
+          description: `Booking Advance (30%): ${bookingProduct.name} – ${slotLabel}`,
           order_id: rzpOrder.razorpay_order_id,
           prefill: {
             name: bookingForm.customer_name,
@@ -1049,7 +1049,7 @@ export function CheckoutPage() {
                       <span className="text-burgundy-600 tabular-nums">₹{productPrice.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-burgundy-700 font-medium">Booking Advance (20%)</span>
+                      <span className="text-burgundy-700 font-medium">Booking Advance (30%)</span>
                       <span className="text-burgundy-900 font-semibold tabular-nums">₹{advanceProductAmount.toLocaleString('en-IN')}</span>
                     </div>
                     {addonsTotal > 0 && (
@@ -1078,7 +1078,7 @@ export function CheckoutPage() {
 
                   {/* Info note */}
                   <p className="text-[10px] text-burgundy-400 leading-relaxed">
-                    20% advance confirms your booking. Remaining 70% is due during the planning stage and 10% after event completion.
+                    30% advance confirms your booking. Remaining 60% is due during the planning stage and 10% after event completion.
                   </p>
 
                   {/* Razorpay badge */}
